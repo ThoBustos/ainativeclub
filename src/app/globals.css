@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * AI Native Club - Design Tokens
+ *
+ * Theme: Warm Amber + Warm Minimal
+ * Easy to swap: Change --brand-* variables to try different colors
+ *
+ * Color Options (uncomment to try):
+ * - Amber:  --brand-hue: 38;  --brand-sat: 0.2;
+ * - Cyan:   --brand-hue: 190; --brand-sat: 0.15;
+ * - Purple: --brand-hue: 270; --brand-sat: 0.12;
+ */
+
+@theme inline {
+  /* Core theme mapping */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Semantic colors */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand color (for custom usage) */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+
+  /* Radius scale */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+/*
+ * Light mode (not primary, but available)
+ */
+:root {
+  --radius: 0.5rem;
+
+  /* Brand: Warm Amber */
+  --brand: oklch(0.75 0.18 55);
+  --brand-foreground: oklch(0.15 0 0);
+
+  /* Surfaces */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+
+  /* Interactive */
+  --primary: oklch(0.75 0.18 55);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.20 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+  --accent: oklch(0.96 0.02 55);
+  --accent-foreground: oklch(0.20 0 0);
+  --destructive: oklch(0.55 0.22 25);
+
+  /* Borders */
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: oklch(0.75 0.18 55);
+}
+
+/*
+ * Dark mode (primary theme)
+ * Warm Amber on near-black
+ */
+.dark {
+  /* Brand: Warm Amber */
+  --brand: oklch(0.78 0.16 55);
+  --brand-foreground: oklch(0.12 0 0);
+
+  /* Surfaces - warm blacks, not pure black */
+  --background: oklch(0.10 0.005 55);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.14 0.005 55);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0.005 55);
+  --popover-foreground: oklch(0.95 0 0);
+
+  /* Interactive - amber primary */
+  --primary: oklch(0.78 0.16 55);
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.22 0.005 55);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.22 0.005 55);
+  --muted-foreground: oklch(0.60 0 0);
+  --accent: oklch(0.22 0.02 55);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.60 0.20 25);
+
+  /* Borders - subtle warm tint */
+  --border: oklch(0.28 0.005 55);
+  --input: oklch(0.22 0.005 55);
+  --ring: oklch(0.78 0.16 55);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+ * Custom utility classes for AI Native Club
+ */
+@layer utilities {
+  /* Terminal-style text */
+  .font-terminal {
+    font-family: var(--font-mono);
+  }
+
+  /* Glow effect for buttons/accents */
+  .glow-brand {
+    box-shadow: 0 0 20px oklch(0.78 0.16 55 / 0.3);
+  }
+
+  /* Subtle text gradient */
+  .text-gradient-brand {
+    background: linear-gradient(135deg, oklch(0.85 0.16 55), oklch(0.70 0.18 45));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
