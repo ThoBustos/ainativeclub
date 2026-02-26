@@ -15,12 +15,33 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Native Club | For builders, not watchers",
   description:
-    "The club for AI-native founders and builders scaling 0→10M. Join 300+ founders who ship the AI-native way.",
+    "The club for AI-native founders and builders scaling 0→10M. Join 847+ founders who ship the AI-native way.",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "AI Native Club",
-    description: "For builders, not watchers.",
+    description: "The club for AI-native builders. Join 847+ founders scaling 0→10M with AI at the core.",
     type: "website",
+    url: "https://ainativeclub.com",
+    siteName: "AI Native Club",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "AI Native Club - The club for AI-native builders",
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Native Club",
+    description: "The club for AI-native builders. Join 847+ founders scaling 0→10M.",
+    images: ["/og-image.svg"],
+  },
+  metadataBase: new URL("https://ainativeclub.com"),
 };
 
 export default function RootLayout({
