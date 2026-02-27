@@ -206,6 +206,11 @@
   50% { transform: translateY(-4px); }
 }
 
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
 @layer utilities {
   .animate-blink {
     animation: blink 1s step-end infinite;
@@ -217,6 +222,10 @@
 
   .animate-float {
     animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
   }
 
   /* Card hover lift */
