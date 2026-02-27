@@ -1,8 +1,24 @@
 # >_ AI Native Club
 
-The landing page. Nothing more.
+Advisory + community for technical co-founders building AI-native companies.
 
 **[ainativeclub.com](https://ainativeclub.com)**
+
+---
+
+## What
+
+A club for founders who build with AI at the core — not as an afterthought.
+
+- **Who:** Technical co-founders, 50K-2M ARR
+- **What:** 2x strategy calls/month, async access, 30-person community
+- **Why:** Ship faster. Learn from peers. Build AI-native.
+
+## Philosophy
+
+AI-native = operating at a speed and scale that wasn't possible before.
+
+Not because AI is magic. Because your systems are rebuilt around it.
 
 ---
 
@@ -63,10 +79,14 @@ src/lib/
 
 ## Design
 
-Direction A: Silent Confidence.
+Direction A: **Silent Confidence.**
 
 One animation. The blinking cursor. Everything else is still.
 
+The confidence comes from what we don't do.
+
 ---
+
+Built by [Thomas Bustos](https://linkedin.com/in/thomasbustos)
 
 MIT
