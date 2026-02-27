@@ -46,3 +46,5 @@ excalidraw.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+test-backend.mjs
+.mcp.json
