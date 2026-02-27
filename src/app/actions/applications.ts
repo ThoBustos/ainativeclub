@@ -39,7 +39,7 @@ export async function submitApplication(data: ApplicationData) {
     return { success: false, error: "Failed to save application" };
   }
 
-  // Send notification email
+  // Send notification email to admin
   try {
     await resend.emails.send({
       from: `AI Native Club <${process.env.RESEND_FROM_EMAIL || "notifications@ainativeclub.com"}>`,
@@ -59,8 +59,25 @@ export async function submitApplication(data: ApplicationData) {
       `,
     });
   } catch (emailError) {
-    console.error("Email error:", emailError);
-    // Don't fail the submission if email fails
+    console.error("Admin email error:", emailError);
+  }
+
+  // Send confirmation email to applicant
+  try {
+    await resend.emails.send({
+      from: `AI Native Club <hello@ainativeclub.com>`,
+      to: data.email,
+      subject: "Application received",
+      html: `
+        <p>Hey ${data.firstName},</p>
+        <p>Got your application. We review every one personally and will get back to you within 48 hours.</p>
+        <p>In the meantime, if you have questions, just reply to this email.</p>
+        <p>— Thomas</p>
+        <p style="color: #666; font-size: 12px; margin-top: 24px;">AI Native Club</p>
+      `,
+    });
+  } catch (emailError) {
+    console.error("Confirmation email error:", emailError);
   }
 
   return { success: true };
