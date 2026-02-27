@@ -1,90 +1,72 @@
-# AI Native Club
+# >_ AI Native Club
 
-The club for AI-native builders. A community for technical founders (50K-2M ARR) who ship fast with AI.
+The landing page. Nothing more.
 
-## Tech Stack
+**[ainativeclub.com](https://ainativeclub.com)**
 
-- **Framework:** Next.js 16 (App Router)
-- **Database:** Supabase (Postgres + RLS)
-- **Email:** Resend
-- **Styling:** Tailwind CSS
-- **UI Components:** Radix UI + shadcn/ui
-- **Deployment:** Vercel
+---
 
-## Getting Started
+## Stack
 
-### Prerequisites
-
-- Node.js 18+
-- Supabase account
-- Resend account
-
-### Setup
-
-1. Clone the repo:
-```bash
-git clone https://github.com/ThoBustos/ainativeclub.git
-cd ainativeclub
+```
+Next.js 16      → App Router, Server Actions
+Supabase        → Postgres + RLS
+Resend          → Transactional email
+Tailwind        → Styling
+Vercel          → Deploy
 ```
 
-2. Install dependencies:
+## Run
+
 ```bash
 npm install
+cp .env.example .env.local  # fill in your keys
+npm run dev                  # localhost:4015
 ```
 
-3. Set up Supabase:
-```bash
-# Link to your Supabase project
-supabase link --project-ref YOUR_PROJECT_REF
+## Env
 
-# Push the database schema
+```bash
+# Supabase (supabase.com → Project Settings → API)
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Resend (resend.com → API Keys)
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=notifications@yourdomain.com
+NOTIFICATION_EMAIL=you@email.com
+```
+
+## Database
+
+```bash
+supabase link --project-ref YOUR_REF
 npm run db:push
 ```
 
-4. Create `.env.local` from the template:
-```bash
-cp .env.example .env.local
-```
-
-5. Fill in your environment variables (see `.env.example` for descriptions)
-
-6. Run the dev server:
-```bash
-npm run dev
-```
-
-Open [http://localhost:4015](http://localhost:4015) to see the app.
-
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server (port 4015) |
-| `npm run build` | Build for production |
-| `npm run db:push` | Push migrations to Supabase |
-| `npm run db:types` | Generate TypeScript types from schema |
-| `npm run db:migrate` | Create a new migration |
-| `npm run storybook` | Start Storybook (port 4016) |
-
-## Project Structure
+## Structure
 
 ```
-src/
-├── app/
-│   ├── actions/         # Server Actions (form submissions)
-│   ├── apply/           # Application page
-│   └── page.tsx         # Landing page
-├── components/
-│   ├── landing/         # Landing page components
-│   └── ui/              # shadcn/ui components
-├── lib/
-│   ├── database.types.ts    # Auto-generated Supabase types
-│   └── supabase-server.ts   # Server-side Supabase client
-└── stories/             # Storybook stories
-supabase/
-└── migrations/          # Database migrations
+src/app/
+├── page.tsx              # Landing
+├── apply/page.tsx        # Application form
+├── actions/              # Server Actions
+├── opengraph-image.tsx   # Dynamic OG
+├── icon.tsx              # Dynamic favicon
+└── sitemap.ts            # Auto sitemap
+
+src/lib/
+├── supabase-server.ts    # Typed Supabase client
+└── database.types.ts     # Generated types
 ```
 
-## License
+## Design
+
+Direction A: Silent Confidence.
+
+One animation. The blinking cursor. Everything else is still.
+
+---
 
 MIT
