@@ -57,7 +57,7 @@ export default function Home() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce-subtle">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
           <svg
             width="24"
             height="24"
@@ -67,7 +67,7 @@ export default function Home() {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-muted-foreground/50"
+            className="text-primary/40"
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
