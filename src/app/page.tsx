@@ -1,14 +1,26 @@
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
+/**
+ * Direction A: "Silent Confidence"
+ *
+ * No scroll animations. No staggered reveals. No ambient glow.
+ * Just typography, color, and one blinking cursor.
+ *
+ * The confidence comes from what we DON'T do.
+ */
+
 export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
         <div className="max-w-2xl text-center space-y-6 sm:space-y-8">
-          {/* Logo */}
-          <div className="text-primary text-3xl sm:text-4xl font-mono mb-4">{">"}_</div>
+          {/* Logo - the ONLY animation on the page */}
+          <div className="text-primary text-3xl sm:text-4xl font-mono mb-4">
+            <span>{">"}</span>
+            <span className="animate-blink">_</span>
+          </div>
 
           {/* Pre-headline */}
           <p className="text-lg sm:text-xl text-muted-foreground">
@@ -32,7 +44,7 @@ export default function Home() {
           <div className="pt-4">
             <Link
               href="/apply"
-              className="inline-flex items-center justify-center h-12 px-8 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors glow-brand"
+              className="inline-flex items-center justify-center h-12 px-8 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
               Apply to Join
             </Link>
@@ -51,7 +63,6 @@ export default function Home() {
           <h2 className="text-2xl sm:text-3xl font-bold">What is AI-native?</h2>
 
           <div className="space-y-6 text-base sm:text-lg text-muted-foreground">
-            {/* Opening */}
             <div className="space-y-2">
               <p className="text-foreground font-medium">
                 AI-native = operating at a speed and scale that wasn&apos;t possible before.
@@ -61,7 +72,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Bullets */}
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <span className="text-primary font-mono">→</span>
@@ -81,7 +91,6 @@ export default function Home() {
               </li>
             </ul>
 
-            {/* Closing */}
             <p className="pt-4 text-foreground font-medium">
               If this sounds like you, you&apos;re one of us.
             </p>
@@ -94,13 +103,12 @@ export default function Home() {
         <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
           <h2 className="text-2xl sm:text-3xl font-bold">What you get</h2>
 
-          {/* Terminal style */}
-          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 font-mono text-xs sm:text-sm overflow-x-auto">
+          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 font-mono text-xs sm:text-sm">
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-              <div className="w-3 h-3 rounded-full bg-red-500/80" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              <span className="ml-2 text-muted-foreground">membership</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+              <span className="ml-2 text-muted-foreground text-xs">membership</span>
             </div>
 
             <div className="text-muted-foreground mb-4">
@@ -148,33 +156,33 @@ export default function Home() {
               href="https://www.youtube.com/@lets-talk-ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline whitespace-nowrap"
+              className="text-sm text-primary hover:text-primary/80 transition-colors group"
             >
-              Podcast →
+              Podcast <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
             </a>
             <a
               href="https://thomasbustos.substack.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline whitespace-nowrap"
+              className="text-sm text-primary hover:text-primary/80 transition-colors group"
             >
-              Substack →
+              Substack <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
             </a>
             <a
               href="https://www.linkedin.com/in/thomasbustos/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline whitespace-nowrap"
+              className="text-sm text-primary hover:text-primary/80 transition-colors group"
             >
-              LinkedIn →
+              LinkedIn <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
             </a>
             <a
               href="https://x.com/ThoBustos"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline whitespace-nowrap"
+              className="text-sm text-primary hover:text-primary/80 transition-colors group"
             >
-              X →
+              X <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
             </a>
           </div>
         </div>
@@ -207,7 +215,7 @@ function FeatureRow({
         variant={status === "live" ? "default" : "secondary"}
         className={`shrink-0 ${
           status === "live"
-            ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+            ? "bg-green-500/20 text-green-400"
             : "bg-muted text-muted-foreground"
         }`}
       >
