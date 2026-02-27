@@ -142,7 +142,45 @@ export default function Home() {
           </div>
 
           <p className="text-muted-foreground">
-            The people in this room ship.
+            we are shiiiiping.
+          </p>
+        </div>
+      </section>
+
+      {/* Members - Terminal Style */}
+      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-border">
+        <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
+          <h2 className="text-2xl sm:text-3xl font-bold">Who&apos;s inside</h2>
+
+          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 font-mono text-xs sm:text-sm">
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
+              <span className="ml-2 text-muted-foreground text-xs">members</span>
+            </div>
+
+            <div className="text-muted-foreground mb-4">
+              <span className="text-primary">$</span> who --founders
+            </div>
+
+            <div className="space-y-2">
+              <MemberRow name="Alexis Bouvet" context="Co-founder, Growth Hiring" linkedin="https://www.linkedin.com/in/alexis-bouvet-growth-hiring/" />
+              <MemberRow name="Agostino Calamia" context="Launch Lab, agentic GTM engineer" linkedin="https://www.linkedin.com/in/agostino-calamia/" />
+              {/* <MemberRow name="Paul Iusztin" context="Decoding AI, LLM Engineer's Handbook author" linkedin="https://www.linkedin.com/in/pauliusztin/" /> */}
+              {/* <MemberRow name="Miguel Otero Pedrido" context="The Neural Maze, ML/AI engineer @ Zapier" linkedin="https://www.linkedin.com/in/migueloteropedrido/" /> */}
+              <MemberRow name="William Littlefield" context="Unlimited, AI-native fintech, exited founder" linkedin="https://www.linkedin.com/in/william-littlefield/" />
+              <MemberRow name="Alan Kashkash" context="AI Engineering Lead, Zero Hiring, exited founder" linkedin="https://www.linkedin.com/in/alankashkash/" />
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-border text-muted-foreground">
+              <span className="text-primary">$</span> count
+              <div className="mt-1 text-foreground">4 founders · 30 max</div>
+            </div>
+          </div>
+
+          <p className="text-muted-foreground">
+            30 seats. 0 spectators.
           </p>
         </div>
       </section>
@@ -238,6 +276,23 @@ function FeatureRow({
       >
         {status === "live" ? "LIVE" : "SOON"}
       </Badge>
+    </div>
+  );
+}
+
+function MemberRow({ name, context, linkedin }: { name: string; context: string; linkedin: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <a
+        href={linkedin}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-foreground hover:text-primary transition-colors"
+      >
+        {name}
+      </a>
+      <span className="text-muted-foreground">·</span>
+      <span className="text-muted-foreground">{context}</span>
     </div>
   );
 }
