@@ -13,35 +13,77 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Native Club | For builders, not watchers",
+  title: "AI Native Club | The club for AI-native builders",
   description:
-    "The club for AI-native founders and builders scaling 0→10M. Join 847+ founders who ship the AI-native way.",
-  icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
+    "Advisory + community for technical co-founders building AI-native companies. 50K-2M ARR. We build roadmaps, ship product, hire teams, close deals. With AI.",
+  keywords: [
+    "AI native",
+    "AI founders",
+    "technical co-founder",
+    "startup community",
+    "AI advisory",
+    "founder community",
+    "AI-first",
+    "startup scaling",
+  ],
+  authors: [{ name: "Thomas Bustos", url: "https://thomasbustos.com" }],
+  creator: "Thomas Bustos",
+  publisher: "AI Native Club",
+  manifest: "/manifest.json",
   openGraph: {
     title: "AI Native Club",
-    description: "The club for AI-native builders. Join 847+ founders scaling 0→10M with AI at the core.",
+    description:
+      "Advisory + community for technical co-founders building AI-native companies. 50K-2M ARR.",
     type: "website",
     url: "https://ainativeclub.com",
     siteName: "AI Native Club",
-    images: [
-      {
-        url: "/og-image.svg",
-        width: 1200,
-        height: 630,
-        alt: "AI Native Club - The club for AI-native builders",
-      },
-    ],
+    locale: "en_US",
+    images: ["/opengraph-image"],
   },
   twitter: {
     card: "summary_large_image",
     title: "AI Native Club",
-    description: "The club for AI-native builders. Join 847+ founders scaling 0→10M.",
-    images: ["/og-image.svg"],
+    description:
+      "Advisory + community for technical co-founders. 50K-2M ARR. Ship with AI.",
+    creator: "@ThoBustos",
+    images: ["/opengraph-image"],
   },
   metadataBase: new URL("https://ainativeclub.com"),
+  alternates: {
+    canonical: "https://ainativeclub.com",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
+
+// JSON-LD Structured Data
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "AI Native Club",
+  description:
+    "Advisory + community for technical co-founders building AI-native companies.",
+  url: "https://ainativeclub.com",
+  logo: "https://ainativeclub.com/favicon.svg",
+  founder: {
+    "@type": "Person",
+    name: "Thomas Bustos",
+    url: "https://linkedin.com/in/thomasbustos",
+  },
+  sameAs: [
+    "https://twitter.com/ThoBustos",
+    "https://linkedin.com/in/thomasbustos",
+    "https://youtube.com/@lets-talk-ai",
+  ],
 };
 
 export default function RootLayout({
@@ -51,6 +93,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >

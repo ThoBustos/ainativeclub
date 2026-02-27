@@ -1,0 +1,7 @@
+# AI Native Club - robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://ainativeclub.com/sitemap.xml
