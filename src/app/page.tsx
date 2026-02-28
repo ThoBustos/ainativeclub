@@ -168,6 +168,7 @@ export default function Home() {
               <MemberRow name="Agostino Calamia" context="Launch Lab, agentic GTM engineer" linkedin="https://www.linkedin.com/in/agostino-calamia/" />
               <MemberRow name="Alan Kashkash" context="AI Engineering Lead, Zero Hiring, exited founder" linkedin="https://www.linkedin.com/in/alankashkash/" />
               <MemberRow name="Alexis Bouvet" context="Co-founder, Growth Hiring" linkedin="https://www.linkedin.com/in/alexis-bouvet-growth-hiring/" />
+              <MemberRow name="Thomas Bustos" context="@Supernal, 2x Co-Founder, Let's Talk AI" linkedin="https://www.linkedin.com/in/thomasbustos/" />
               <MemberRow name="William Littlefield" context="Unlimited, AI-native fintech, exited founder" linkedin="https://www.linkedin.com/in/william-littlefield/" />
               {/* <MemberRow name="Miguel Otero Pedrido" context="The Neural Maze, ML/AI engineer @ Zapier" linkedin="https://www.linkedin.com/in/migueloteropedrido/" /> */}
               {/* <MemberRow name="Paul Iusztin" context="Decoding AI, LLM Engineer's Handbook author" linkedin="https://www.linkedin.com/in/pauliusztin/" /> */}
@@ -175,7 +176,7 @@ export default function Home() {
 
             <div className="mt-4 pt-4 border-t border-border text-muted-foreground">
               <span className="text-primary">$</span> count
-              <div className="mt-1 text-foreground">4 founders · 30 max</div>
+              <div className="mt-1 text-foreground">5 founders · 30 max</div>
             </div>
           </div>
 
