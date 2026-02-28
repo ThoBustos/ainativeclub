@@ -20,6 +20,7 @@ export function TerminalCard({ title, children }: TerminalCardProps) {
           onClick={() => setVisible(false)}
           className="w-2.5 h-2.5 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors cursor-pointer"
           title="Close"
+          aria-label="Close card"
         />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />

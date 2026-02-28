@@ -13,7 +13,19 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main id="main-content" className="min-h-screen">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-end">
+          <Link
+            href="/login"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Member Login
+          </Link>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24 relative">
         <div className="max-w-2xl text-center space-y-6 sm:space-y-8">

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { isValidEmail } from "@/lib/validation";
 import Link from "next/link";
 import { submitApplication } from "@/app/actions/applications";
 
@@ -104,11 +105,6 @@ export function ApplicationWizard() {
     }
   };
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -157,7 +153,7 @@ export function ApplicationWizard() {
         }
         break;
       case 6: // Email
-        if (!validateEmail(formData.email)) {
+        if (!isValidEmail(formData.email)) {
           setError("Please enter a valid email");
           return;
         }
@@ -250,6 +246,7 @@ export function ApplicationWizard() {
             onClick={handleExit}
             className="w-3 h-3 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors cursor-pointer"
             title="Close"
+            aria-label="Close application form"
           />
           <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
           <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />

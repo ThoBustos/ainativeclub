@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { isValidEmail } from "@/lib/validation";
 import { joinWaitlist } from "@/app/actions/waitlist";
 
 type FormState = "idle" | "loading" | "success" | "error";
@@ -16,11 +17,6 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
   const [state, setState] = useState<FormState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
@@ -32,7 +28,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!isValidEmail(email)) {
       setErrorMessage("Please enter a valid email");
       setState("error");
       return;
