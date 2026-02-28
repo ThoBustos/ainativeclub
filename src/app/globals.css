@@ -212,9 +212,14 @@
 }
 
 @keyframes clignotant {
-  0%, 30%, 100% { opacity: 0.4; }
-  10%, 12% { opacity: 1; }
-  20%, 22% { opacity: 1; }
+  0% { opacity: 1; }
+  5% { opacity: 1; }
+  5.1% { opacity: 0.4; }
+  11.25% { opacity: 0.4; }
+  11.35% { opacity: 1; }
+  16.25% { opacity: 1; }
+  16.35% { opacity: 0.4; }
+  100% { opacity: 0.4; }
 }
 
 @layer utilities {
@@ -235,7 +240,7 @@
   }
 
   .animate-clignotant {
-    animation: clignotant 5s step-end infinite;
+    animation: clignotant 8s linear infinite;
   }
 
   /* Card hover lift */
