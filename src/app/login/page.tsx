@@ -6,9 +6,28 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
+function isAppSubdomain(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.host.startsWith("app.");
+}
+
+function getMainSiteUrl(path: string = "/"): string {
+  if (typeof window === "undefined") return path;
+  const protocol = window.location.protocol;
+  const host = window.location.host;
+
+  if (host.includes("localhost")) {
+    return `${protocol}//localhost:4015${path}`;
+  }
+
+  return `${protocol}//www.ainativeclub.com${path}`;
+}
+
 function LoginContent() {
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/portal";
+  // On app subdomain, default redirect is "/" (which shows portal)
+  const defaultRedirect = isAppSubdomain() ? "/" : "/portal";
+  const redirect = searchParams.get("redirect") || defaultRedirect;
   const error = searchParams.get("error");
   const message = searchParams.get("message");
 
@@ -186,23 +205,23 @@ function LoginContent() {
           {/* Not a member */}
           <div className="text-center text-sm text-muted-foreground">
             Not a member yet?{" "}
-            <Link
-              href="/apply"
+            <a
+              href={getMainSiteUrl("/apply")}
               className="text-primary hover:text-primary/80 transition-colors"
             >
               Apply to join
-            </Link>
+            </a>
           </div>
         </div>
 
         {/* Back link */}
         <div className="text-center">
-          <Link
-            href="/"
+          <a
+            href={getMainSiteUrl("/")}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             ← Back to home
-          </Link>
+          </a>
         </div>
       </div>
     </main>

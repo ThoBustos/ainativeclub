@@ -6,9 +6,12 @@ import { createClient } from "@/lib/supabase/server";
  * Exchanges the code for a session and redirects to portal.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams, origin, host } = new URL(request.url);
   const code = searchParams.get("code");
-  const redirect = searchParams.get("redirect") || "/portal";
+  // On app subdomain, default redirect is "/" (which serves portal)
+  const isAppSubdomain = host.startsWith("app.");
+  const defaultRedirect = isAppSubdomain ? "/" : "/portal";
+  const redirect = searchParams.get("redirect") || defaultRedirect;
 
   if (code) {
     const supabase = await createClient();
