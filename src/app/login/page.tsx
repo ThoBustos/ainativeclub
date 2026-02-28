@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -70,12 +69,12 @@ function LoginContent() {
     return (
       <main id="main-content" className="min-h-screen flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-8">
-          <Link href="/" className="block text-center">
+          <a href={getMainSiteUrl("/")} className="block text-center">
             <div className="text-primary text-3xl font-mono">
               <span>{">"}</span>
               <span className="animate-blink">_</span>
             </div>
-          </Link>
+          </a>
 
           <div className="bg-card border border-border rounded-lg p-6 space-y-4 text-center">
             <div className="text-2xl">✉️</div>
@@ -102,12 +101,12 @@ function LoginContent() {
     <main id="main-content" className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
-        <Link href="/" className="block text-center">
+        <a href={getMainSiteUrl("/")} className="block text-center">
           <div className="text-primary text-3xl font-mono">
             <span>{">"}</span>
             <span className="animate-blink">_</span>
           </div>
-        </Link>
+        </a>
 
         {/* Card */}
         <div className="bg-card border border-border rounded-lg p-6 space-y-6">
