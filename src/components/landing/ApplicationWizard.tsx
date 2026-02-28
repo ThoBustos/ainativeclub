@@ -198,9 +198,9 @@ export function ApplicationWizard() {
         <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-md w-full">
           {/* Terminal header */}
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
-            <div className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_8px_rgba(239,68,68,0.6)] transition-all" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 hover:shadow-[0_0_8px_rgba(234,179,8,0.6)] transition-all" />
-            <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 hover:shadow-[0_0_8px_rgba(34,197,94,0.6)] transition-all" />
+            <div className="w-3 h-3 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
+            <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />
             <span className="ml-2 text-sm font-medium">Application received</span>
           </div>
 
@@ -231,11 +231,11 @@ export function ApplicationWizard() {
           <button
             type="button"
             onClick={handleExit}
-            className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_8px_rgba(239,68,68,0.6)] transition-all cursor-pointer"
+            className="w-3 h-3 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors cursor-pointer"
             title="Close"
           />
-          <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 hover:shadow-[0_0_8px_rgba(234,179,8,0.6)] transition-all" />
-          <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 hover:shadow-[0_0_8px_rgba(34,197,94,0.6)] transition-all" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
+          <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />
           <span className="ml-2 text-sm font-medium">{stepTitles[step]}</span>
         </div>
 
