@@ -215,14 +215,14 @@
 }
 
 @keyframes clignotant {
-  /* 8s cycle: quick blink, short pause, quick blink, long pause */
+  /* 8s cycle: 0.05s on, 0.05s gap, 0.05s on, long pause */
   0% { opacity: 1; }
-  1.5% { opacity: 1; }      /* blink 1 on (~0.12s) */
-  1.6% { opacity: 0.4; }
-  2.5% { opacity: 0.4; }    /* gap: ~0.07s */
-  2.6% { opacity: 1; }
-  4% { opacity: 1; }        /* blink 2 on (~0.12s) */
-  4.1% { opacity: 0.4; }
+  0.625% { opacity: 1; }    /* blink 1 on (0.05s) */
+  0.63% { opacity: 0.4; }
+  1.25% { opacity: 0.4; }   /* gap (0.05s) */
+  1.26% { opacity: 1; }
+  1.875% { opacity: 1; }    /* blink 2 on (0.05s) */
+  1.88% { opacity: 0.4; }
   100% { opacity: 0.4; }    /* rest off */
 }
 
