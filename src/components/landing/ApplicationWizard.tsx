@@ -195,6 +195,14 @@ export function ApplicationWizard() {
   if (state === "success") {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="fixed top-6 left-6 text-primary text-xl font-mono hover:opacity-80 transition-opacity"
+        >
+          <span>{">"}</span>
+          <span className="animate-blink">_</span>
+        </Link>
         <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-md w-full">
           {/* Terminal header */}
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
@@ -225,6 +233,15 @@ export function ApplicationWizard() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      {/* Logo */}
+      <Link
+        href="/"
+        className="fixed top-6 left-6 text-primary text-xl font-mono hover:opacity-80 transition-opacity"
+      >
+        <span>{">"}</span>
+        <span className="animate-blink">_</span>
+      </Link>
+
       <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-xl w-full">
         {/* Terminal header */}
         <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
