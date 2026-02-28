@@ -142,7 +142,7 @@ export default function Home() {
             </div>
 
             <div className="mt-4 pt-4 border-t border-border">
-              <span className="text-primary text-lg sm:text-xl font-medium">$400/mo</span>
+              <span className="text-primary text-lg sm:text-xl font-medium">$998/mo</span>
             </div>
           </TerminalCard>
 
