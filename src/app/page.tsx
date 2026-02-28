@@ -24,24 +24,25 @@ export default function Home() {
 
           {/* Pre-headline */}
           <p className="text-lg sm:text-xl text-muted-foreground">
-            50K-2M ARR. Technical founders who ship.
+            The club for
           </p>
 
           {/* Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-            The club for{" "}
             <span className="text-gradient-brand">AI-native</span> builders.
           </h1>
 
-          {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto">
-            We build roadmaps, ship product, hire teams, close deals.
-            <br />
-            We do it with AI ofc. And fast.
-          </p>
+          {/* Value Box */}
+          <div className="bg-card border border-border rounded-lg p-4 sm:p-5 max-w-xs mx-auto">
+            <div className="space-y-1 text-left font-mono text-sm sm:text-base">
+              <p className="text-primary">2 calls/month</p>
+              <p className="text-primary">30 founders max</p>
+              <p className="text-primary">$400/mo</p>
+            </div>
+          </div>
 
           {/* CTA Button */}
-          <div className="pt-4">
+          <div className="pt-2">
             <Link
               href="/apply"
               className="inline-flex items-center justify-center h-12 px-8 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
@@ -50,9 +51,9 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Social proof */}
+          {/* Filter */}
           <p className="text-sm text-muted-foreground">
-            Early access waitlist. Application required.
+            50K-2M ARR founders only
           </p>
         </div>
 
