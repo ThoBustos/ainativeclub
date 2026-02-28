@@ -87,6 +87,23 @@ export function ApplicationWizard() {
     return () => clearTimeout(timer);
   }, [step]);
 
+  // ESC key handler
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleExit();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  const handleExit = () => {
+    if (confirm("Leave application?")) {
+      window.location.href = "/";
+    }
+  };
+
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -181,9 +198,9 @@ export function ApplicationWizard() {
         <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-md w-full">
           {/* Terminal header */}
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
-            <div className="w-3 h-3 rounded-full bg-red-500/80" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-            <div className="w-3 h-3 rounded-full bg-green-500/80" />
+            <div className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_8px_rgba(239,68,68,0.6)] transition-all" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 hover:shadow-[0_0_8px_rgba(234,179,8,0.6)] transition-all" />
+            <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 hover:shadow-[0_0_8px_rgba(34,197,94,0.6)] transition-all" />
             <span className="ml-2 text-sm font-medium">Application received</span>
           </div>
 
@@ -211,9 +228,14 @@ export function ApplicationWizard() {
       <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-xl w-full">
         {/* Terminal header */}
         <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
-          <div className="w-3 h-3 rounded-full bg-red-500/80" />
-          <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-          <div className="w-3 h-3 rounded-full bg-green-500/80" />
+          <button
+            type="button"
+            onClick={handleExit}
+            className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_8px_rgba(239,68,68,0.6)] transition-all cursor-pointer"
+            title="Close"
+          />
+          <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 hover:shadow-[0_0_8px_rgba(234,179,8,0.6)] transition-all" />
+          <div className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 hover:shadow-[0_0_8px_rgba(34,197,94,0.6)] transition-all" />
           <span className="ml-2 text-sm font-medium">{stepTitles[step]}</span>
         </div>
 
