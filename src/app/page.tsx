@@ -29,7 +29,7 @@ export default function Home() {
 
           {/* Value Box */}
           <div className="font-mono text-sm sm:text-base text-primary">
-            2 calls/month · 30 founders max
+            Better decisions · Faster growth · 30 founders
           </div>
 
           {/* CTA Button */}
