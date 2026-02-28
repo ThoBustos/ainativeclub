@@ -22,14 +22,9 @@ export default function Home() {
             <span className="animate-blink">_</span>
           </div>
 
-          {/* Pre-headline */}
-          <p className="text-lg sm:text-xl text-muted-foreground">
-            The club for
-          </p>
-
           {/* Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-            <span className="text-gradient-brand">AI-native</span> builders.
+            The club for <span className="text-gradient-brand">AI-native</span> builders.
           </h1>
 
           {/* Value Box */}
