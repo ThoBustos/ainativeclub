@@ -33,12 +33,8 @@ export default function Home() {
           </h1>
 
           {/* Value Box */}
-          <div className="bg-card border border-border rounded-lg p-4 sm:p-5 max-w-xs mx-auto">
-            <div className="space-y-1 text-left font-mono text-sm sm:text-base">
-              <p className="text-primary">2 calls/month</p>
-              <p className="text-primary">30 founders max</p>
-              <p className="text-primary">$400/mo</p>
-            </div>
+          <div className="font-mono text-sm sm:text-base text-primary">
+            2 calls/month · 30 founders max
           </div>
 
           {/* CTA Button */}
@@ -139,6 +135,10 @@ export default function Home() {
               <FeatureRow name="Founder community (30 max)" status="live" />
               <FeatureRow name="Frameworks & playbooks" status="live" />
               <FeatureRow name="Warm intros" status="live" />
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-border">
+              <span className="text-primary text-lg sm:text-xl font-medium">$400/mo</span>
             </div>
           </div>
 
