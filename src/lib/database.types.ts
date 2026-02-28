@@ -62,6 +62,68 @@ export type Database = {
         }
         Relationships: []
       }
+      members: {
+        Row: {
+          application_id: string | null
+          avatar_url: string | null
+          bio: string | null
+          company: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          linkedin_url: string | null
+          onboarded_at: string | null
+          role: Database["public"]["Enums"]["member_role"] | null
+          status: Database["public"]["Enums"]["member_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          linkedin_url?: string | null
+          onboarded_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"] | null
+          status?: Database["public"]["Enums"]["member_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          linkedin_url?: string | null
+          onboarded_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"] | null
+          status?: Database["public"]["Enums"]["member_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist: {
         Row: {
           created_at: string
@@ -88,7 +150,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      member_role: "member" | "admin"
+      member_status: "pending" | "active" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +278,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      member_role: ["member", "admin"],
+      member_status: ["pending", "active", "suspended"],
+    },
   },
 } as const

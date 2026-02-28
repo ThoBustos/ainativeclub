@@ -1,37 +1,53 @@
 "use server";
 
+import { z } from "zod";
 import { Resend } from "resend";
-import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { serverEnv } from "@/lib/env";
 
-interface ApplicationData {
-  email: string;
-  firstName: string;
-  lastName: string;
-  building: string;
-  website: string;
-  github?: string;
-  linkedin?: string;
-  role: string;
-  arr: string;
-  painPoints: string;
-}
+// Zod schema for application data validation
+const applicationSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  building: z.string().min(1, "Please describe what you're building"),
+  website: z.string().url("Invalid website URL"),
+  github: z.string().url("Invalid GitHub URL").optional().or(z.literal("")),
+  linkedin: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
+  role: z.string().min(1, "Role is required"),
+  arr: z.string().min(1, "ARR is required"),
+  painPoints: z.string().min(1, "Please share your challenges"),
+});
+
+type ApplicationData = z.infer<typeof applicationSchema>;
 
 export async function submitApplication(data: ApplicationData) {
-  const supabase = createServerClient();
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  // Validate input
+  const parsed = applicationSchema.safeParse(data);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || "Invalid input",
+    };
+  }
+
+  const validData = parsed.data;
+  const env = serverEnv();
+  const supabase = createAdminClient();
+  const resend = new Resend(env.RESEND_API_KEY);
 
   // Insert into Supabase
   const { error } = await supabase.from("applications").insert({
-    email: data.email,
-    first_name: data.firstName,
-    last_name: data.lastName,
-    building: data.building,
-    website: data.website,
-    github: data.github || null,
-    linkedin: data.linkedin || null,
-    role: data.role,
-    arr: data.arr,
-    pain_points: data.painPoints,
+    email: validData.email,
+    first_name: validData.firstName,
+    last_name: validData.lastName,
+    building: validData.building,
+    website: validData.website,
+    github: validData.github || null,
+    linkedin: validData.linkedin || null,
+    role: validData.role,
+    arr: validData.arr,
+    pain_points: validData.painPoints,
   });
 
   if (error) {
@@ -42,20 +58,20 @@ export async function submitApplication(data: ApplicationData) {
   // Send notification email to admin
   try {
     await resend.emails.send({
-      from: `AI Native Club <${process.env.RESEND_FROM_EMAIL || "notifications@ainativeclub.com"}>`,
-      to: process.env.NOTIFICATION_EMAIL!,
-      subject: `New Application: ${data.firstName} ${data.lastName}`,
+      from: `AI Native Club <${env.RESEND_FROM_EMAIL || "notifications@ainativeclub.com"}>`,
+      to: env.NOTIFICATION_EMAIL,
+      subject: `New Application: ${validData.firstName} ${validData.lastName}`,
       html: `
         <h2>New Application Received</h2>
-        <p><strong>Name:</strong> ${data.firstName} ${data.lastName}</p>
-        <p><strong>Email:</strong> ${data.email}</p>
-        <p><strong>Role:</strong> ${data.role}</p>
-        <p><strong>ARR:</strong> ${data.arr}</p>
-        <p><strong>Building:</strong> ${data.building}</p>
-        <p><strong>Website:</strong> ${data.website}</p>
-        <p><strong>Challenge:</strong> ${data.painPoints}</p>
-        ${data.github ? `<p><strong>GitHub:</strong> ${data.github}</p>` : ""}
-        ${data.linkedin ? `<p><strong>LinkedIn:</strong> ${data.linkedin}</p>` : ""}
+        <p><strong>Name:</strong> ${validData.firstName} ${validData.lastName}</p>
+        <p><strong>Email:</strong> ${validData.email}</p>
+        <p><strong>Role:</strong> ${validData.role}</p>
+        <p><strong>ARR:</strong> ${validData.arr}</p>
+        <p><strong>Building:</strong> ${validData.building}</p>
+        <p><strong>Website:</strong> ${validData.website}</p>
+        <p><strong>Challenge:</strong> ${validData.painPoints}</p>
+        ${validData.github ? `<p><strong>GitHub:</strong> ${validData.github}</p>` : ""}
+        ${validData.linkedin ? `<p><strong>LinkedIn:</strong> ${validData.linkedin}</p>` : ""}
       `,
     });
   } catch (emailError) {
@@ -66,10 +82,10 @@ export async function submitApplication(data: ApplicationData) {
   try {
     await resend.emails.send({
       from: `AI Native Club <hello@ainativeclub.com>`,
-      to: data.email,
+      to: validData.email,
       subject: "Application received",
       html: `
-        <p>Hey ${data.firstName},</p>
+        <p>Hey ${validData.firstName},</p>
         <p>Got your application. We review every one personally and will get back to you within 48 hours.</p>
         <p>In the meantime, if you have questions, just reply to this email.</p>
         <p>— Thomas</p>

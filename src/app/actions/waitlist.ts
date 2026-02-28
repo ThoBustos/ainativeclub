@@ -1,11 +1,26 @@
 "use server";
 
-import { createServerClient } from "@/lib/supabase-server";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// Zod schema for email validation
+const waitlistSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
 
 export async function joinWaitlist(email: string) {
-  const supabase = createServerClient();
+  // Validate input
+  const parsed = waitlistSchema.safeParse({ email });
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || "Invalid email",
+    };
+  }
 
-  const { error } = await supabase.from("waitlist").insert({ email });
+  const supabase = createAdminClient();
+
+  const { error } = await supabase.from("waitlist").insert({ email: parsed.data.email });
 
   if (error) {
     if (error.code === "23505") {
