@@ -211,6 +211,12 @@
   50% { transform: translateY(6px); }
 }
 
+@keyframes clignotant {
+  0%, 30%, 100% { opacity: 0.4; }
+  10%, 12% { opacity: 1; }
+  20%, 22% { opacity: 1; }
+}
+
 @layer utilities {
   .animate-blink {
     animation: blink 1s step-end infinite;
@@ -226,6 +232,10 @@
 
   .animate-bounce-subtle {
     animation: bounce-subtle 2s ease-in-out infinite;
+  }
+
+  .animate-clignotant {
+    animation: clignotant 5s step-end infinite;
   }
 
   /* Card hover lift */

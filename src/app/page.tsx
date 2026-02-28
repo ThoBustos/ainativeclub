@@ -60,7 +60,7 @@ export default function Home() {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-primary/40"
+            className="text-primary animate-clignotant"
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
