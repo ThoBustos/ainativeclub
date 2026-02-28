@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { TerminalCard } from "@/components/ui/terminal-card";
 import Link from "next/link";
 
 /**
@@ -112,14 +113,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
           <h2 className="text-2xl sm:text-3xl font-bold">What you get</h2>
 
-          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 font-mono text-xs sm:text-sm">
-            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
-              <span className="ml-2 text-muted-foreground text-xs">membership</span>
-            </div>
-
+          <TerminalCard title="membership">
             <div className="text-muted-foreground mb-4">
               <span className="text-primary">$</span> ls -la ./membership/
             </div>
@@ -135,7 +129,7 @@ export default function Home() {
             <div className="mt-4 pt-4 border-t border-border">
               <span className="text-primary text-lg sm:text-xl font-medium">$400/mo</span>
             </div>
-          </div>
+          </TerminalCard>
 
           <p className="text-muted-foreground">
             we are shiiiiping.
@@ -148,14 +142,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
           <h2 className="text-2xl sm:text-3xl font-bold">Who&apos;s inside</h2>
 
-          <div className="bg-card border border-border rounded-lg p-4 sm:p-6 font-mono text-xs sm:text-sm">
-            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
-              <span className="ml-2 text-muted-foreground text-xs">members</span>
-            </div>
-
+          <TerminalCard title="members">
             <div className="text-muted-foreground mb-4">
               <span className="text-primary">$</span> who --founders
             </div>
@@ -174,7 +161,7 @@ export default function Home() {
               <span className="text-primary">$</span> count
               <div className="mt-1 text-foreground">5 founders · 30 max</div>
             </div>
-          </div>
+          </TerminalCard>
 
           <p className="text-muted-foreground">
             30 seats. 0 spectators.
