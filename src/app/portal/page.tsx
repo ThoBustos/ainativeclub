@@ -14,7 +14,7 @@ export default async function PortalPage() {
     <main id="main-content" className="min-h-screen">
       {/* Header */}
       <header className="border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="text-primary text-xl font-mono">
             <span>{">"}</span>
             <span className="animate-blink">_</span>
