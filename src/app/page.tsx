@@ -50,7 +50,10 @@ export default function Home() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <a
+          href="#what-is-ai-native"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <svg
             width="24"
             height="24"
@@ -64,11 +67,11 @@ export default function Home() {
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
-        </div>
+        </a>
       </section>
 
       {/* What is AI Native */}
-      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-border">
+      <section id="what-is-ai-native" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-border scroll-mt-8">
         <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
           <h2 className="text-2xl sm:text-3xl font-bold">What is AI-native?</h2>
 
