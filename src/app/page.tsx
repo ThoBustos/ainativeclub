@@ -49,7 +49,7 @@ export default function Home() {
 
           {/* Filter */}
           <p className="text-sm text-muted-foreground">
-            50K-2M ARR founders only
+            50K-5M ARR founders only
           </p>
         </div>
 
