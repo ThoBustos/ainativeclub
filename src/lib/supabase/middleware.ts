@@ -123,7 +123,13 @@ export async function updateSession(request: NextRequest) {
 
   // Public routes on app subdomain (no auth required)
   const publicRoutes = ["/login", "/auth/callback", "/auth/signout"];
+  const publicFiles = ["/manifest.json", "/favicon.svg", "/favicon.ico", "/robots.txt"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublicFile = publicFiles.includes(pathname);
+
+  if (isPublicFile) {
+    return supabaseResponse;
+  }
 
   if (isPublicRoute) {
     // If logged in member visits /login, redirect to portal home
