@@ -177,7 +177,7 @@ function LoginContent() {
           </div>
 
           {/* Magic Link */}
-          <form onSubmit={handleMagicLink} className="space-y-3">
+          <form onSubmit={handleMagicLink} className="space-y-3" suppressHydrationWarning>
             <label htmlFor="email" className="sr-only">Email address</label>
             <input
               id="email"
@@ -188,11 +188,13 @@ function LoginContent() {
               className="w-full h-11 px-4 rounded-md border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               required
               aria-label="Email address"
+              suppressHydrationWarning
             />
             <button
               type="submit"
               disabled={isLoading}
               className="w-full h-11 px-4 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              suppressHydrationWarning
             >
               {isLoading ? "Sending..." : "Send magic link"}
             </button>
