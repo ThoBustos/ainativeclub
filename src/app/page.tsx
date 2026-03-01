@@ -15,11 +15,11 @@ export default function Home() {
   return (
     <main id="main-content" className="min-h-screen">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50">
+      <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
         <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-end">
           <Link
             href="/login"
-            className="text-sm text-white mix-blend-difference hover:opacity-80 transition-opacity"
+            className="text-sm text-white mix-blend-difference hover:opacity-80 transition-opacity pointer-events-auto"
           >
             Member Login
           </Link>
