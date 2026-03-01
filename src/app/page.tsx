@@ -19,7 +19,7 @@ export default function Home() {
         <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-end">
           <Link
             href="/login"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-white mix-blend-difference hover:opacity-80 transition-opacity"
           >
             Member Login
           </Link>
