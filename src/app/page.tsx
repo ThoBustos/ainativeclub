@@ -143,6 +143,7 @@ export default function Home() {
 
             <div className="mt-4 pt-4 border-t border-border">
               <span className="text-primary text-lg sm:text-xl font-medium">$998/mo</span>
+              <p className="text-muted-foreground text-sm mt-1">Cancel anytime. No results in 30 days = full refund.</p>
             </div>
           </TerminalCard>
 
