@@ -1,31 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-function isAppSubdomain(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.location.host.startsWith("app.");
-}
+function useClientUrls() {
+  const [urls, setUrls] = useState({
+    isAppSubdomain: false,
+    mainSiteUrl: (path: string) => path,
+  });
 
-function getMainSiteUrl(path: string = "/"): string {
-  if (typeof window === "undefined") return path;
-  const protocol = window.location.protocol;
-  const host = window.location.host;
+  useEffect(() => {
+    const host = window.location.host;
+    const protocol = window.location.protocol;
+    const isApp = host.startsWith("app.");
 
-  if (host.includes("localhost")) {
-    return `${protocol}//localhost:4015${path}`;
-  }
+    const getMainSiteUrl = (path: string = "/") => {
+      if (host.includes("localhost")) {
+        return `${protocol}//localhost:4015${path}`;
+      }
+      return `${protocol}//www.ainativeclub.com${path}`;
+    };
 
-  return `${protocol}//www.ainativeclub.com${path}`;
+    setUrls({ isAppSubdomain: isApp, mainSiteUrl: getMainSiteUrl });
+  }, []);
+
+  return urls;
 }
 
 function LoginContent() {
   const searchParams = useSearchParams();
+  const { isAppSubdomain, mainSiteUrl } = useClientUrls();
   // On app subdomain, default redirect is "/" (which shows portal)
-  const defaultRedirect = isAppSubdomain() ? "/" : "/portal";
+  const defaultRedirect = isAppSubdomain ? "/" : "/portal";
   const redirect = searchParams.get("redirect") || defaultRedirect;
   const error = searchParams.get("error");
   const message = searchParams.get("message");
@@ -69,7 +77,7 @@ function LoginContent() {
     return (
       <main id="main-content" className="min-h-screen flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-sm space-y-8">
-          <a href={getMainSiteUrl("/")} className="block text-center">
+          <a href={mainSiteUrl("/")} className="block text-center">
             <div className="text-primary text-3xl font-mono">
               <span>{">"}</span>
               <span className="animate-blink">_</span>
@@ -101,7 +109,7 @@ function LoginContent() {
     <main id="main-content" className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
-        <a href={getMainSiteUrl("/")} className="block text-center">
+        <a href={mainSiteUrl("/")} className="block text-center">
           <div className="text-primary text-3xl font-mono">
             <span>{">"}</span>
             <span className="animate-blink">_</span>
@@ -205,7 +213,7 @@ function LoginContent() {
           <div className="text-center text-sm text-muted-foreground">
             Not a member yet?{" "}
             <a
-              href={getMainSiteUrl("/apply")}
+              href={mainSiteUrl("/apply")}
               className="text-primary hover:text-primary/80 transition-colors"
             >
               Apply to join
@@ -216,7 +224,7 @@ function LoginContent() {
         {/* Back link */}
         <div className="text-center">
           <a
-            href={getMainSiteUrl("/")}
+            href={mainSiteUrl("/")}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             ← Back to home
