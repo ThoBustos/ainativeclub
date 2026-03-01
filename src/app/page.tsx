@@ -15,11 +15,11 @@ export default function Home() {
   return (
     <main id="main-content" className="min-h-screen">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-end">
           <Link
             href="/login"
-            className="text-sm text-white mix-blend-difference hover:opacity-80 transition-opacity pointer-events-auto"
+            className="text-sm text-white hover:opacity-80 transition-opacity"
           >
             Member Login
           </Link>
@@ -168,7 +168,7 @@ export default function Home() {
               <MemberRow name="Alan Kashkash" context="AI Engineering Lead, Zero Hiring, exited founder" linkedin="https://www.linkedin.com/in/alankashkash/" />
               <MemberRow name="Alexis Bouvet" context="Co-founder, Growth Hiring" linkedin="https://www.linkedin.com/in/alexis-bouvet-growth-hiring/" />
               <MemberRow name="Thomas Bustos" context="Cooking @Supernal | 2x Co-Founder" linkedin="https://www.linkedin.com/in/thomasbustos/" />
-              <MemberRow name="William Littlefield" context="Unlimited, AI-native fintech, exited founder" linkedin="https://www.linkedin.com/in/william-littlefield/" />
+              <MemberRow name="William Littlefield" context="CEO/CTO @Unlimited" linkedin="https://www.linkedin.com/in/william-littlefield/" />
               {/* <MemberRow name="Miguel Otero Pedrido" context="The Neural Maze, ML/AI engineer @ Zapier" linkedin="https://www.linkedin.com/in/migueloteropedrido/" /> */}
               {/* <MemberRow name="Paul Iusztin" context="Decoding AI, LLM Engineer's Handbook author" linkedin="https://www.linkedin.com/in/pauliusztin/" /> */}
             </div>
@@ -282,7 +282,7 @@ function FeatureRow({
 
 function MemberRow({ name, context, linkedin }: { name: string; context: string; linkedin: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
       <a
         href={linkedin}
         target="_blank"
@@ -291,8 +291,8 @@ function MemberRow({ name, context, linkedin }: { name: string; context: string;
       >
         {name}
       </a>
-      <span className="text-muted-foreground">·</span>
-      <span className="text-muted-foreground">{context}</span>
+      <span className="hidden sm:inline text-muted-foreground">·</span>
+      <span className="text-muted-foreground text-sm sm:text-base">{context}</span>
     </div>
   );
 }
