@@ -42,7 +42,12 @@ export default function Home() {
 
           {/* Value Box */}
           <div className="font-mono text-sm sm:text-base text-primary">
-            Better decisions · Faster growth · 30 founders
+            <span className="hidden sm:inline">Better decisions · Faster growth · 30 founders</span>
+            <span className="sm:hidden flex flex-col items-center gap-1">
+              <span>Better decisions ·</span>
+              <span>Faster growth ·</span>
+              <span>30 founders</span>
+            </span>
           </div>
 
           {/* CTA Button */}
