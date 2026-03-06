@@ -1,0 +1,24 @@
+# AI Native Club
+
+> The club for AI-native builders. Advisory + community for technical co-founders building AI-native companies.
+
+AI Native Club is an advisory and community for technical co-founders building AI-native companies in the $50K–$2M ARR range. Members get roadmap support, product strategy, hiring guidance, and deal support — all leveraging AI. Founded by Thomas Bustos.
+
+## Key Pages
+
+- [Home](https://ainativeclub.com): Overview, value proposition, and apply CTA
+- [Apply](https://ainativeclub.com/apply): Application to join the club
+
+## About
+
+- Founder: Thomas Bustos — https://thomasbustos.com
+- Focus: AI-native startups, technical co-founders, $50K–$2M ARR
+- What members get: Better decisions, faster growth, a tight network of 30 founders
+
+## Links
+
+- Website: https://ainativeclub.com
+- Founder: https://thomasbustos.com
+- X / Twitter: https://x.com/ThoBustos
+- LinkedIn: https://www.linkedin.com/in/thomasbustos/
+- YouTube: https://www.youtube.com/@lets-talk-ai
