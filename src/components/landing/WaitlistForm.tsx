@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { isValidEmail } from "@/lib/validation";
+import { z } from "zod";
 import { joinWaitlist } from "@/app/actions/waitlist";
 
 type FormState = "idle" | "loading" | "success" | "error";
@@ -28,7 +28,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!z.string().email().safeParse(email).success) {
       setErrorMessage("Please enter a valid email");
       setState("error");
       return;

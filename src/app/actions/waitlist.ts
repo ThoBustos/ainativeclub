@@ -1,7 +1,9 @@
 "use server";
 
 import { z } from "zod";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { waitlistRatelimit } from "@/lib/ratelimit";
 
 // Zod schema for email validation
 const waitlistSchema = z.object({
@@ -9,6 +11,14 @@ const waitlistSchema = z.object({
 });
 
 export async function joinWaitlist(email: string) {
+  // Rate limiting
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1";
+  const { success: rateLimitOk } = await waitlistRatelimit.limit(ip);
+  if (!rateLimitOk) {
+    return { success: false, error: "Too many submissions. Please try again later." };
+  }
+
   // Validate input
   const parsed = waitlistSchema.safeParse({ email });
   if (!parsed.success) {

@@ -11,6 +11,8 @@ import Link from "next/link";
  * The confidence comes from what we DON'T do.
  */
 
+export const dynamic = "force-static";
+
 export default function Home() {
   return (
     <main id="main-content" className="min-h-screen">
@@ -62,7 +64,7 @@ export default function Home() {
 
           {/* Filter */}
           <p className="text-sm text-muted-foreground">
-            50K-5M ARR founders only
+            $20K-$2M ARR founders only
           </p>
         </div>
 
@@ -147,7 +149,7 @@ export default function Home() {
             </div>
 
             <div className="mt-4 pt-4 border-t border-border">
-              <span className="text-primary text-lg sm:text-xl font-medium">$998/mo</span>
+              <span className="text-primary text-lg sm:text-xl font-medium select-none blur-sm">$998/mo</span>
               <p className="text-muted-foreground text-sm mt-1">Cancel anytime. No results in 30 days = full refund.</p>
             </div>
           </TerminalCard>

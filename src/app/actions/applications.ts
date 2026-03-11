@@ -2,8 +2,11 @@
 
 import { z } from "zod";
 import { Resend } from "resend";
+import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { serverEnv } from "@/lib/env";
+import { escapeHtml } from "@/lib/utils";
+import { applicationRatelimit } from "@/lib/ratelimit";
 
 // Zod schema for application data validation
 const applicationSchema = z.object({
@@ -22,6 +25,14 @@ const applicationSchema = z.object({
 type ApplicationData = z.infer<typeof applicationSchema>;
 
 export async function submitApplication(data: ApplicationData) {
+  // Rate limiting
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for") ?? "127.0.0.1";
+  const { success: rateLimitOk } = await applicationRatelimit.limit(ip);
+  if (!rateLimitOk) {
+    return { success: false, error: "Too many submissions. Please try again later." };
+  }
+
   // Validate input
   const parsed = applicationSchema.safeParse(data);
   if (!parsed.success) {
@@ -55,6 +66,8 @@ export async function submitApplication(data: ApplicationData) {
     return { success: false, error: "Failed to save application" };
   }
 
+  const e = (s: string) => escapeHtml(s);
+
   // Send notification email to admin
   try {
     await resend.emails.send({
@@ -63,15 +76,15 @@ export async function submitApplication(data: ApplicationData) {
       subject: `New Application: ${validData.firstName} ${validData.lastName}`,
       html: `
         <h2>New Application Received</h2>
-        <p><strong>Name:</strong> ${validData.firstName} ${validData.lastName}</p>
-        <p><strong>Email:</strong> ${validData.email}</p>
-        <p><strong>Role:</strong> ${validData.role}</p>
-        <p><strong>ARR:</strong> ${validData.arr}</p>
-        <p><strong>Building:</strong> ${validData.building}</p>
-        <p><strong>Website:</strong> ${validData.website}</p>
-        <p><strong>Challenge:</strong> ${validData.painPoints}</p>
-        ${validData.github ? `<p><strong>GitHub:</strong> ${validData.github}</p>` : ""}
-        ${validData.linkedin ? `<p><strong>LinkedIn:</strong> ${validData.linkedin}</p>` : ""}
+        <p><strong>Name:</strong> ${e(validData.firstName)} ${e(validData.lastName)}</p>
+        <p><strong>Email:</strong> ${e(validData.email)}</p>
+        <p><strong>Role:</strong> ${e(validData.role)}</p>
+        <p><strong>ARR:</strong> ${e(validData.arr)}</p>
+        <p><strong>Building:</strong> ${e(validData.building)}</p>
+        <p><strong>Website:</strong> ${e(validData.website)}</p>
+        <p><strong>Challenge:</strong> ${e(validData.painPoints)}</p>
+        ${validData.github ? `<p><strong>GitHub:</strong> ${e(validData.github)}</p>` : ""}
+        ${validData.linkedin ? `<p><strong>LinkedIn:</strong> ${e(validData.linkedin)}</p>` : ""}
       `,
     });
   } catch (emailError) {
@@ -85,7 +98,7 @@ export async function submitApplication(data: ApplicationData) {
       to: validData.email,
       subject: "Application received",
       html: `
-        <p>Hey ${validData.firstName},</p>
+        <p>Hey ${e(validData.firstName)},</p>
         <p>Got your application. We review every one personally and will get back to you within 48 hours.</p>
         <p>In the meantime, if you have questions, just reply to this email.</p>
         <p>— Thomas</p>

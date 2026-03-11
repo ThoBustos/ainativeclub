@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { isValidEmail } from "@/lib/validation";
+import { z } from "zod";
 import Link from "next/link";
 import { submitApplication } from "@/app/actions/applications";
 
@@ -49,8 +49,8 @@ const roleOptions = [
 ];
 
 const arrOptions = [
-  { value: "under-50k", label: "~$50K" },
-  { value: "50k-500k", label: "$50K-$500K" },
+  { value: "under-20k", label: "~$20K" },
+  { value: "20k-500k", label: "$20K-$500K" },
   { value: "500k-1m", label: "$500K-$1M" },
   { value: "1m-2m", label: "$1M-$2M" },
   { value: "2m-plus", label: "$2M+" },
@@ -153,7 +153,8 @@ export function ApplicationWizard() {
         }
         break;
       case 6: // Email
-        if (!isValidEmail(formData.email)) {
+        const emailParsed = z.string().email().safeParse(formData.email);
+        if (!emailParsed.success) {
           setError("Please enter a valid email");
           return;
         }
@@ -202,9 +203,9 @@ export function ApplicationWizard() {
         <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-md w-full">
           {/* Terminal header */}
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
-            <div className="w-3 h-3 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
-            <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />
+            <div className="w-3 h-3 rounded-full bg-red-500/70 hover:bg-red-500 transition-colors" aria-hidden="true" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" aria-hidden="true" />
+            <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" aria-hidden="true" />
             <span className="ml-2 text-sm font-medium">Application received</span>
           </div>
 
@@ -239,6 +240,7 @@ export function ApplicationWizard() {
       </Link>
 
       <div className="bg-card border border-border rounded-lg p-6 sm:p-8 max-w-xl w-full">
+        <h1 className="sr-only">Apply to AI Native Club</h1>
         {/* Terminal header */}
         <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
           <button
@@ -248,9 +250,13 @@ export function ApplicationWizard() {
             title="Close"
             aria-label="Close application form"
           />
-          <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" />
-          <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500/70 hover:bg-yellow-500 transition-colors" aria-hidden="true" />
+          <div className="w-3 h-3 rounded-full bg-green-500/70 hover:bg-green-500 transition-colors" aria-hidden="true" />
           <span className="ml-2 text-sm font-medium">{stepTitles[step]}</span>
+        </div>
+
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          Step {step + 1} of {TOTAL_STEPS}: {stepTitles[step]}
         </div>
 
         {/* Step content */}
@@ -551,10 +557,16 @@ export function ApplicationWizard() {
           </div>
 
           {/* Progress dots */}
-          <div className="flex items-center justify-center gap-2">
+          <div
+            role="group"
+            aria-label={`Application progress, step ${step + 1} of ${TOTAL_STEPS}`}
+            className="flex items-center justify-center gap-2"
+          >
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
                 key={i}
+                role="img"
+                aria-label={`Step ${i + 1}${i < step ? " completed" : i === step ? " current" : ""}`}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all",
                   i === step

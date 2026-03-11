@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Native Club | The club for AI-native builders",
   description:
-    "Advisory + community for technical co-founders building AI-native companies. 50K-2M ARR. We build roadmaps, ship product, hire teams, close deals. With AI.",
+    "Advisory + community for technical co-founders building AI-native companies. 20K-2M ARR. We build roadmaps, ship product, hire teams, close deals. With AI.",
   keywords: [
     "AI native",
     "AI founders",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "AI Native Club",
     description:
-      "Advisory + community for technical co-founders building AI-native companies. 50K-2M ARR.",
+      "Advisory + community for technical co-founders building AI-native companies. 20K-2M ARR.",
     type: "website",
     url: "https://ainativeclub.com",
     siteName: "AI Native Club",
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AI Native Club",
     description:
-      "Advisory + community for technical co-founders. 50K-2M ARR. Ship with AI.",
+      "Advisory + community for technical co-founders. 20K-2M ARR. Ship with AI.",
     creator: "@ThoBustos",
     images: ["/opengraph-image"],
   },
@@ -109,6 +110,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         {children}
+        <Analytics />
       </body>
     </html>
   );

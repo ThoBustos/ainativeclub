@@ -80,7 +80,7 @@ export default async function Image() {
             textAlign: "center",
           }}
         >
-          50K-2M ARR · Technical founders who ship
+          $20K-$2M ARR · Technical founders who ship
         </div>
       </div>
     ),

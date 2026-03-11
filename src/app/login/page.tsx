@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
+export const dynamic = "force-dynamic";
+
 function useClientUrls() {
   const [urls, setUrls] = useState({
     isAppSubdomain: false,
