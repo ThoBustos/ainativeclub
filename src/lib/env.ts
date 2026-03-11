@@ -17,6 +17,10 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
   RESEND_FROM_EMAIL: z.string().email().optional(),
   NOTIFICATION_EMAIL: z.string().email(),
+  ANTHROPIC_API_KEY: z.string().min(1),
+  TWILIO_ACCOUNT_SID: z.string().min(1),
+  TWILIO_AUTH_TOKEN: z.string().min(1),
+  TWILIO_WHATSAPP_NUMBER: z.string().min(1),
 });
 
 // Parse and validate client env
@@ -46,6 +50,10 @@ function getServerEnv() {
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
+    TWILIO_WHATSAPP_NUMBER: process.env.TWILIO_WHATSAPP_NUMBER,
   });
 
   if (!parsed.success) {

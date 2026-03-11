@@ -18,6 +18,3 @@ export function createAdminClient() {
     }
   );
 }
-
-// Backwards compatibility alias
-export const createServerClient = createAdminClient;
