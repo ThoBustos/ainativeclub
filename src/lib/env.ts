@@ -21,6 +21,8 @@ const serverEnvSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().min(1),
   TWILIO_AUTH_TOKEN: z.string().min(1),
   TWILIO_WHATSAPP_NUMBER: z.string().min(1),
+  INNGEST_EVENT_KEY: z.string().min(1),
+  INNGEST_SIGNING_KEY: z.string().min(1),
 });
 
 // Parse and validate client env
@@ -54,6 +56,8 @@ function getServerEnv() {
     TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
     TWILIO_WHATSAPP_NUMBER: process.env.TWILIO_WHATSAPP_NUMBER,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
   });
 
   if (!parsed.success) {
