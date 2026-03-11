@@ -32,15 +32,16 @@ function getSubdomain(host: string): string | null {
   return null;
 }
 
-function isAppSubdomain(host: string): boolean {
+export function isAppSubdomain(host: string): boolean {
   return getSubdomain(host) === APP_SUBDOMAIN;
 }
 
 function getAppUrl(request: NextRequest, path: string = "/"): string {
-  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host") || "";
+  const isLocal = host.includes("localhost");
+  const protocol = isLocal ? "http" : (request.headers.get("x-forwarded-proto") || "https");
 
-  // Local development
-  if (request.headers.get("host")?.includes("localhost")) {
+  if (isLocal) {
     return `${protocol}://app.localhost:4015${path}`;
   }
 
@@ -48,10 +49,11 @@ function getAppUrl(request: NextRequest, path: string = "/"): string {
 }
 
 function getMainUrl(request: NextRequest, path: string = "/"): string {
-  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host") || "";
+  const isLocal = host.includes("localhost");
+  const protocol = isLocal ? "http" : (request.headers.get("x-forwarded-proto") || "https");
 
-  // Local development
-  if (request.headers.get("host")?.includes("localhost")) {
+  if (isLocal) {
     return `${protocol}://localhost:4015${path}`;
   }
 
@@ -59,9 +61,13 @@ function getMainUrl(request: NextRequest, path: string = "/"): string {
 }
 
 export async function updateSession(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+    throw new Error("Missing required Supabase environment variables in middleware");
+  }
 
   const host = request.headers.get("host") || "";
   const isApp = isAppSubdomain(host);
@@ -145,6 +151,11 @@ export async function updateSession(request: NextRequest) {
       }
     }
     return supabaseResponse;
+  }
+
+  // Root on app subdomain always goes to portal
+  if (pathname === "/") {
+    return NextResponse.redirect(getAppUrl(request, "/portal"));
   }
 
   // All other routes on app subdomain require auth + membership

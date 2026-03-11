@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession, isAppSubdomain } from "@/lib/supabase/middleware";
 
-const APP_SUBDOMAIN = "app";
-
-function isAppSubdomain(host: string): boolean {
-  return host.startsWith(`${APP_SUBDOMAIN}.`);
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+  ].join("; ");
 }
 
 export async function middleware(request: NextRequest) {
@@ -12,33 +18,46 @@ export async function middleware(request: NextRequest) {
   const isApp = isAppSubdomain(host);
   const pathname = request.nextUrl.pathname;
 
+  // Generate a per-request nonce for CSP (eliminates 'unsafe-inline' for scripts)
+  const nonce = btoa(String.fromCharCode(...Array.from(crypto.getRandomValues(new Uint8Array(16)))));
+
+  let response: NextResponse;
+
   // On app subdomain, rewrite "/" to "/portal" internally
   if (isApp && pathname === "/") {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = "/portal";
 
-    // Create a new request with the rewritten URL for auth processing
     const modifiedRequest = new NextRequest(rewriteUrl, {
       headers: request.headers,
     });
 
-    const response = await updateSession(modifiedRequest);
+    const authResponse = await updateSession(modifiedRequest);
 
-    // If updateSession returned a redirect, return it
-    if (response.headers.get("location")) {
-      return response;
+    if (authResponse.headers.get("location")) {
+      response = authResponse;
+    } else {
+      const rewriteResponse = NextResponse.rewrite(rewriteUrl);
+      authResponse.cookies.getAll().forEach((cookie) => {
+        rewriteResponse.cookies.set(cookie.name, cookie.value);
+      });
+      // Copy x-member-* headers so portal/page.tsx can read them via headers()
+      authResponse.headers.forEach((value, key) => {
+        if (key.startsWith("x-member-")) {
+          rewriteResponse.headers.set(key, value);
+        }
+      });
+      response = rewriteResponse;
     }
-
-    // Otherwise, rewrite to /portal
-    const rewriteResponse = NextResponse.rewrite(rewriteUrl);
-    // Copy cookies from auth response
-    response.cookies.getAll().forEach((cookie) => {
-      rewriteResponse.cookies.set(cookie.name, cookie.value);
-    });
-    return rewriteResponse;
+  } else {
+    response = await updateSession(request);
   }
 
-  return await updateSession(request);
+  // Apply nonce + dynamic CSP to all responses
+  response.headers.set("x-nonce", nonce);
+  response.headers.set("Content-Security-Policy", buildCsp(nonce));
+
+  return response;
 }
 
 export const config = {
