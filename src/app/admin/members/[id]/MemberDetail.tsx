@@ -12,6 +12,7 @@ import {
   addThomasFeedNote,
   scheduleSession, completeSession,
   updateFeature,
+  updateMemberPhone,
 } from "@/app/actions/admin";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -541,6 +542,58 @@ function SessionsSection({ sessions, memberId }: { sessions: Session[]; memberId
   );
 }
 
+// ─── Phone section ────────────────────────────────────────────────────────────
+
+function PhoneSection({ member }: { member: Member }) {
+  const [phone, setPhone] = useState(member.phone ?? "");
+  const [isPending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function handleSave() {
+    startTransition(async () => {
+      await updateMemberPhone(member.id, phone);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    });
+  }
+
+  return (
+    <Section title="WhatsApp">
+      <div className="flex flex-col gap-3">
+        <p style={{ ...SANS, fontSize: 12, color: T.fgMute }}>
+          E.164 format — e.g. +14155238886. Used to match incoming WhatsApp messages to this member.
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="tel"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="+14155238886"
+            style={{
+              ...MONO, fontSize: 13, flex: 1,
+              background: T.surfaceLow, border: `1px solid ${T.border}`,
+              borderRadius: 4, padding: "8px 12px", color: T.fg,
+              outline: "none",
+            }}
+          />
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            style={btnPrimary}
+          >
+            {saved ? "SAVED" : isPending ? "..." : "SAVE"}
+          </button>
+        </div>
+        {member.phone && (
+          <span style={{ ...MONO, fontSize: 11, color: T.fgDim }}>
+            Current: {member.phone}
+          </span>
+        )}
+      </div>
+    </Section>
+  );
+}
+
 // ─── Features section ─────────────────────────────────────────────────────────
 
 const FEATURE_LABELS: { key: keyof FeaturesEnabled; label: string; hint: string }[] = [
@@ -704,6 +757,7 @@ export function MemberDetail({ member, goals, levelEvents, sessions, thomasFeed 
         <ArrSection member={member} />
         <FeedSection memberId={member.id} feed={thomasFeed} />
         <SessionsSection sessions={sessions} memberId={member.id} />
+        <PhoneSection member={member} />
         <FeaturesSection member={member} />
 
         {/* Danger zone */}

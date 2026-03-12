@@ -348,6 +348,21 @@ export async function completeSession(sessionId: string, memberId: string, notes
   revalidatePath("/portal");
 }
 
+// ─── Phone ────────────────────────────────────────────────────────────────────
+
+export async function updateMemberPhone(memberId: string, phone: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+  // Normalize: store as E.164 (+1234567890), strip whatsapp: prefix if pasted
+  const normalized = phone.replace(/^whatsapp:/i, "").trim() || null;
+  const { error } = await db
+    .from("members")
+    .update({ phone: normalized })
+    .eq("id", memberId);
+  if (error) throw new Error("Failed to update phone: " + error.message);
+  revalidatePath(`/admin/members/${memberId}`);
+}
+
 // ─── Features ─────────────────────────────────────────────────────────────────
 
 export async function updateFeature(
