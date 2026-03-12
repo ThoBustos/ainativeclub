@@ -128,7 +128,7 @@ export async function updateSession(request: NextRequest) {
   // ==================
 
   // Public routes on app subdomain (no auth required)
-  const publicRoutes = ["/login", "/auth/callback", "/auth/signout"];
+  const publicRoutes = ["/login", "/auth/callback", "/auth/signout", "/api/"];
   const publicFiles = ["/manifest.json", "/favicon.svg", "/favicon.ico", "/robots.txt"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   const isPublicFile = publicFiles.includes(pathname);
