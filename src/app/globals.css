@@ -2,6 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * TODO: Accessibility Audit Required
+ *
+ * Run Lighthouse on https://ainativeclub.com before next deploy:
+ *   1. Chrome DevTools → Lighthouse → Accessibility
+ *   2. Check amber primary oklch(0.78 0.16 55) on dark bg oklch(0.10 0.005 55)
+ *   3. Target: WCAG AA (4.5:1 normal text, 3:1 large text + UI components)
+ *   4. Tool: https://www.myndex.com/APCA/
+ *
+ * Known risk: muted-foreground oklch(0.60 0 0) on dark bg may be borderline.
+ */
+
 @custom-variant dark (&:is(.dark *));
 
 /*

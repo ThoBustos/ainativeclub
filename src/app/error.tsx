@@ -11,8 +11,10 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to console in development
     console.error("Application error:", error);
+    // TODO: Add Sentry for production error tracking:
+    // 1. pnpm add @sentry/nextjs && npx @sentry/wizard@latest -i nextjs
+    // 2. import * as Sentry from "@sentry/nextjs"; Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -39,6 +41,7 @@ export default function Error({
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
+              type="button"
               onClick={() => reset()}
               className="inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
