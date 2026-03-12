@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateSession, isAppSubdomain } from "@/lib/supabase/middleware";
 
-function buildCsp(nonce: string): string {
+function buildCsp(): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`,
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
@@ -17,9 +17,6 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
   const isApp = isAppSubdomain(host);
   const pathname = request.nextUrl.pathname;
-
-  // Generate a per-request nonce for CSP (eliminates 'unsafe-inline' for scripts)
-  const nonce = btoa(String.fromCharCode(...Array.from(crypto.getRandomValues(new Uint8Array(16)))));
 
   let response: NextResponse;
 
@@ -53,9 +50,8 @@ export async function middleware(request: NextRequest) {
     response = await updateSession(request);
   }
 
-  // Apply nonce + dynamic CSP to all responses
-  response.headers.set("x-nonce", nonce);
-  response.headers.set("Content-Security-Policy", buildCsp(nonce));
+  // TODO: wire nonce to layout <script> tags before switching to nonce-based CSP
+  response.headers.set("Content-Security-Policy", buildCsp());
 
   return response;
 }
