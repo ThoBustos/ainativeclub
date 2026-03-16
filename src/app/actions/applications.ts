@@ -8,15 +8,29 @@ import { serverEnv } from "@/lib/env";
 import { escapeHtml } from "@/lib/utils";
 import { applicationRatelimit } from "@/lib/ratelimit";
 
+// Prepend https:// if no protocol present. Strips leading @ (social handle style).
+function normalizeUrl(url: string): string {
+  const trimmed = url.trim().replace(/^@/, "");
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 // Zod schema for application data validation
 const applicationSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   building: z.string().min(1, "Please describe what you're building"),
-  website: z.string().url("Invalid website URL"),
-  github: z.string().url("Invalid GitHub URL").optional().or(z.literal("")),
-  linkedin: z.string().url("Invalid LinkedIn URL").optional().or(z.literal("")),
+  // Website is required and must be a valid URL after normalization
+  website: z.preprocess(
+    (val) => typeof val === "string" ? normalizeUrl(val) : val,
+    z.string().url("Invalid website URL — please enter your company domain (e.g. yourstartup.com)")
+  ),
+  // GitHub and LinkedIn are optional — accept any format (URL, handle, username)
+  // We normalize and store whatever they give us without strict URL validation
+  github: z.string().transform((val) => val.trim().replace(/^@/, "")).optional().or(z.literal("")),
+  linkedin: z.string().transform((val) => val.trim().replace(/^@/, "")).optional().or(z.literal("")),
   role: z.string().min(1, "Role is required"),
   arr: z.string().min(1, "ARR is required"),
   painPoints: z.string().min(1, "Please share your challenges"),
@@ -36,9 +50,11 @@ export async function submitApplication(data: ApplicationData) {
   // Validate input
   const parsed = applicationSchema.safeParse(data);
   if (!parsed.success) {
+    const issue = parsed.error.issues[0];
     return {
       success: false,
-      error: parsed.error.issues[0]?.message || "Invalid input",
+      error: issue?.message || "Invalid input",
+      field: issue?.path[0] ? String(issue.path[0]) : undefined,
     };
   }
 

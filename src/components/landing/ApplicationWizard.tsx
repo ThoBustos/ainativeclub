@@ -9,6 +9,28 @@ import Link from "next/link";
 import { submitApplication } from "@/app/actions/applications";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+// Mirror of server normalizeUrl — prepends https:// and strips leading @
+function normalizeUrl(url: string): string {
+  const trimmed = url.trim().replace(/^@/, "");
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+// Maps server field names back to wizard step numbers
+const fieldToStep: Partial<Record<string, Step>> = {
+  building: 0,
+  firstName: 1,
+  lastName: 1,
+  arr: 2,
+  role: 3,
+  painPoints: 4,
+  website: 5,
+  github: 5,
+  linkedin: 5,
+  email: 6,
+};
 type FormState = "idle" | "loading" | "success";
 
 interface FormData {
@@ -146,12 +168,22 @@ export function ApplicationWizard() {
           return;
         }
         break;
-      case 5: // Links
+      case 5: { // Links
         if (!formData.website.trim()) {
           setError("Website is required");
           return;
         }
+        const normalizedWebsite = normalizeUrl(formData.website);
+        try {
+          new URL(normalizedWebsite);
+        } catch {
+          setError("Please enter a valid website (e.g. yourstartup.com or https://yourstartup.com)");
+          return;
+        }
+        // Update with normalized URL so server receives a clean value
+        setFormData((prev) => ({ ...prev, website: normalizedWebsite }));
         break;
+      }
       case 6: // Email
         const emailParsed = z.string().email().safeParse(formData.email);
         if (!emailParsed.success) {
@@ -177,7 +209,14 @@ export function ApplicationWizard() {
       const result = await submitApplication(formData);
 
       if (!result.success) {
-        throw new Error(result.error || "Submission failed");
+        setError(result.error || "Something went wrong. Please try again.");
+        setState("idle");
+        // Navigate back to the step that has the bad field
+        if (result.field) {
+          const errorStep = fieldToStep[result.field];
+          if (errorStep !== undefined) setStep(errorStep);
+        }
+        return;
       }
 
       setState("success");
