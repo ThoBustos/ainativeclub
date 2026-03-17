@@ -13,7 +13,7 @@ function buildCsp(): string {
   ].join("; ");
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const host = request.headers.get("host") || "";
   const isApp = isAppSubdomain(host);
   const pathname = request.nextUrl.pathname;
