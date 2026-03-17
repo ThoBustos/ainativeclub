@@ -118,12 +118,12 @@ export async function inviteMember(email: string, firstName: string, lastName: s
     await resend.emails.send({
       from: "AI Native Club <hello@ainativeclub.com>",
       to: normalizedEmail,
-      subject: "You're in — AI Native Club",
+      subject: "You're in. AI Native Club",
       html: `
         <p>Hey ${e(validFirstName)},</p>
         <p>Thomas has invited you to AI Native Club. Log in to access your portal and get set up before your first call.</p>
         <p><a href="https://app.ainativeclub.com/login">app.ainativeclub.com/login</a></p>
-        <p>— Thomas</p>
+        <p>Thomas</p>
         <p style="color:#666;font-size:12px;margin-top:24px">AI Native Club</p>
       `,
     });
@@ -175,12 +175,12 @@ export async function approveApplication(applicationId: string) {
     await resend.emails.send({
       from: "AI Native Club <hello@ainativeclub.com>",
       to: app.email,
-      subject: "You're in — AI Native Club",
+      subject: "You're in. AI Native Club",
       html: `
         <p>Hey ${e(app.first_name)},</p>
         <p>You're approved. Log in to access your portal and get set up before our first call.</p>
         <p><a href="https://app.ainativeclub.com/login">app.ainativeclub.com/login</a></p>
-        <p>— Thomas</p>
+        <p>Thomas</p>
         <p style="color:#666;font-size:12px;margin-top:24px">AI Native Club</p>
       `,
     });
@@ -214,12 +214,12 @@ export async function rejectApplication(applicationId: string) {
     await resend.emails.send({
       from: "AI Native Club <hello@ainativeclub.com>",
       to: app.email,
-      subject: "AI Native Club — application update",
+      subject: "AI Native Club application update",
       html: `
         <p>Hey ${e(app.first_name)},</p>
         <p>Thank you for applying. After reviewing your application, we're not moving forward right now.</p>
         <p>Feel free to reach out if you have questions or want to reapply down the road.</p>
-        <p>— Thomas</p>
+        <p>Thomas</p>
         <p style="color:#666;font-size:12px;margin-top:24px">AI Native Club</p>
       `,
     });

@@ -117,7 +117,7 @@ export async function submitApplication(data: ApplicationData) {
         <p>Hey ${e(validData.firstName)},</p>
         <p>Got your application. We review every one personally and will get back to you within 48 hours.</p>
         <p>In the meantime, if you have questions, just reply to this email.</p>
-        <p>— Thomas</p>
+        <p>Thomas</p>
         <p style="color: #666; font-size: 12px; margin-top: 24px;">AI Native Club</p>
       `,
     });
