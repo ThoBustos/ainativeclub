@@ -53,15 +53,6 @@ export function InviteMemberButton() {
     }
   }, [open]);
 
-  // Close on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-    };
-    if (open) window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [open]);
-
   function handleClose() {
     setOpen(false);
     setFirstName("");
@@ -71,6 +62,15 @@ export function InviteMemberButton() {
     setSuccess(false);
     setEmailSent(true);
   }
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    if (open) window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open]);
 
   function handleSubmit() {
     setError("");

@@ -110,6 +110,12 @@ export function ApplicationWizard() {
     return () => clearTimeout(timer);
   }, [step]);
 
+  const handleExit = () => {
+    if (confirm("Leave application?")) {
+      window.location.href = "/";
+    }
+  };
+
   // ESC key handler
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -120,12 +126,6 @@ export function ApplicationWizard() {
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
-
-  const handleExit = () => {
-    if (confirm("Leave application?")) {
-      window.location.href = "/";
-    }
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -252,7 +252,7 @@ export function ApplicationWizard() {
             <div className="text-green-400 text-4xl font-mono">✓</div>
 
             <p className="text-muted-foreground">
-              We'll be in touch soon.
+              We&apos;ll be in touch soon.
             </p>
 
             <Link

@@ -461,8 +461,8 @@ function ArrHistoryDrawer({
               <p style={{ ...SANS, fontSize: 13, color: T.fgMute }}>No ARR updates yet.</p>
             </div>
           ) : (
-            history.map((entry, i) => (
-              <div key={i} className="flex items-start gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
+            history.map((entry, idx) => (
+              <div key={idx} className="flex items-start gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
                 <span style={{ ...MONO, fontSize: 11, color: T.fgMute, whiteSpace: "nowrap", paddingTop: 2 }}>
                   {entry.date}
                 </span>
