@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { serverEnv } from "@/lib/env";
 import { escapeHtml } from "@/lib/utils";
@@ -57,6 +58,82 @@ async function applyXpGrant(
 
   if (updateResult.error) throw new Error("XP update failed: " + updateResult.error.message);
   if (insertResult.error) throw new Error("Level event insert failed: " + insertResult.error.message);
+}
+
+// ─── Invite ───────────────────────────────────────────────────────────────────
+
+const inviteSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().optional().transform((v) => v?.trim() ?? ""),
+});
+
+export async function inviteMember(email: string, firstName: string, lastName: string) {
+  await requireAdmin();
+
+  const parsed = inviteSchema.safeParse({
+    email: email.trim(),
+    firstName: firstName.trim(),
+    lastName,
+  });
+
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return { success: false as const, error: issue?.message || "Invalid input", emailSent: false };
+  }
+
+  const { email: normalizedEmail, firstName: validFirstName, lastName: validLastName } = parsed.data;
+
+  const db = createAdminClient();
+  const env = serverEnv();
+  const resend = new Resend(env.RESEND_API_KEY);
+
+  // Check for existing member
+  const { data: existing } = await db
+    .from("members")
+    .select("id")
+    .eq("email", normalizedEmail.toLowerCase())
+    .maybeSingle();
+
+  if (existing) {
+    return { success: false as const, error: "A member with this email already exists.", emailSent: false };
+  }
+
+  const { error: memberError } = await db.from("members").insert({
+    email: normalizedEmail.toLowerCase(),
+    first_name: validFirstName,
+    last_name: validLastName,
+    role: "member",
+    status: "active",
+  });
+
+  if (memberError) {
+    return { success: false as const, error: "Failed to create member.", emailSent: false };
+  }
+
+  const e = (s: string) => escapeHtml(s);
+  let emailSent = false;
+
+  try {
+    await resend.emails.send({
+      from: "AI Native Club <hello@ainativeclub.com>",
+      to: normalizedEmail,
+      subject: "You're in — AI Native Club",
+      html: `
+        <p>Hey ${e(validFirstName)},</p>
+        <p>Thomas has invited you to AI Native Club. Log in to access your portal and get set up before your first call.</p>
+        <p><a href="https://app.ainativeclub.com/login">app.ainativeclub.com/login</a></p>
+        <p>— Thomas</p>
+        <p style="color:#666;font-size:12px;margin-top:24px">AI Native Club</p>
+      `,
+    });
+    emailSent = true;
+  } catch (err) {
+    console.error("Invite email failed:", err);
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const, emailSent };
 }
 
 // ─── Applications ─────────────────────────────────────────────────────────────

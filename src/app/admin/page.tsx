@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { FeaturesEnabled } from "@/types";
+import { InviteMemberButton } from "./InviteMemberButton";
 
 const T = {
   bg:         "oklch(0.10 0.005 55)",
@@ -67,9 +68,12 @@ export default async function AdminPage() {
             Members
           </h1>
         </div>
-        <span style={{ ...MONO, fontSize: 12, color: T.fgMute }}>
-          {members.length} {members.length === 1 ? "member" : "members"}
-        </span>
+        <div className="flex items-center gap-4">
+          <span style={{ ...MONO, fontSize: 12, color: T.fgMute }}>
+            {members.length} {members.length === 1 ? "member" : "members"}
+          </span>
+          <InviteMemberButton />
+        </div>
       </div>
 
       {/* Members list */}
