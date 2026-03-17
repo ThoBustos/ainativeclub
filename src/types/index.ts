@@ -55,11 +55,17 @@ export function nextArrRung(current: number): number {
   return ARR_RUNGS.find(r => r > current) ?? 2_000_000;
 }
 
-/** XP required to level up, based on ARR stage. */
+/** XP required to level up. Higher ARR = lower threshold = faster progression. */
 export function xpToNextLevel(arrCurrent: number): number {
-  if (arrCurrent < 100_000) return 100;
-  if (arrCurrent < 500_000) return 150;
+  if (arrCurrent >= 500_000) return 100;
+  if (arrCurrent >= 100_000) return 150;
   return 200;
+}
+
+/** Returns the rung directly below target — used as baseline for progress bar. */
+export function prevArrRung(target: number): number {
+  const idx = ARR_RUNGS.indexOf(target as ArrRung);
+  return idx > 0 ? ARR_RUNGS[idx - 1] : 0;
 }
 
 // Typed shape for arr_history JSONB entries

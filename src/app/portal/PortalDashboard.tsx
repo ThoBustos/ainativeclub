@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Lock, MessageSquare, X, ChevronRight, LogOut } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import type { PortalData, Goal, LevelEvent, ThomasFeedEntry, Session, FeaturesEnabled, Message } from "@/types";
-import { xpToNextLevel } from "@/types";
+import type { PortalData, Goal, LevelEvent, ThomasFeedEntry, Session, FeaturesEnabled, Message, ArrHistoryEntry } from "@/types";
+import { xpToNextLevel, prevArrRung } from "@/types";
 import { fmtArr } from "@/lib/format";
 import { toggleGoalSubmitted } from "@/app/actions/portal";
 
@@ -412,6 +412,75 @@ function LevelHistoryDrawer({
   );
 }
 
+// ─── ARR History Drawer ───────────────────────────────────────────────────────
+
+function ArrHistoryDrawer({
+  arrCurrent, arrTarget, arrPct, history, onClose,
+}: {
+  arrCurrent: number;
+  arrTarget: number;
+  arrPct: number;
+  history: ArrHistoryEntry[];
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: "oklch(0 0 0 / 0.55)" }} onClick={onClose} />
+      <aside
+        className="fixed left-0 top-0 h-full z-50 flex flex-col w-full sm:w-[340px]"
+        style={{ background: T.surfaceLow, borderRight: `1px solid ${T.border}` }}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 flex-none" style={{ borderBottom: `1px solid ${T.border}` }}>
+          <div className="flex flex-col gap-1">
+            <span style={LABEL}>ARR History</span>
+            <p style={{ ...MONO, fontWeight: 700, fontSize: 20, color: T.amber }}>
+              {fmtArr(arrCurrent)} → {fmtArr(arrTarget)}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ color: T.fgMute, cursor: "pointer", marginTop: 2 }} aria-label="Close">
+            <X size={17} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-6 py-4 flex-none" style={{ borderBottom: `1px solid ${T.border}` }}>
+          <div className="flex justify-between mb-2" style={{ ...MONO, fontSize: 11, color: T.fgMid }}>
+            <span>To next milestone</span>
+            <span>{arrPct}%</span>
+          </div>
+          <div className="w-full rounded-full overflow-hidden" style={{ height: 2, background: T.border }}>
+            <div className="h-full rounded-full" style={{ width: `${arrPct}%`, background: T.amber }} />
+          </div>
+        </div>
+
+        {/* History list */}
+        <div className="flex-1 overflow-y-auto">
+          {history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 p-8 text-center">
+              <p style={{ ...SANS, fontSize: 13, color: T.fgMute }}>No ARR updates yet.</p>
+            </div>
+          ) : (
+            history.map((entry, i) => (
+              <div key={i} className="flex items-start gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
+                <span style={{ ...MONO, fontSize: 11, color: T.fgMute, whiteSpace: "nowrap", paddingTop: 2 }}>
+                  {entry.date}
+                </span>
+                <div className="flex flex-col gap-0.5">
+                  <span style={{ ...MONO, fontSize: 13, fontWeight: 700, color: T.fg }}>{fmtArr(entry.value)}</span>
+                  {entry.note && (
+                    <p style={{ ...SANS, fontSize: 12, color: T.fgMid, lineHeight: 1.4 }}>{entry.note}</p>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </aside>
+    </>
+  );
+}
+
 // ─── Chat Sidebar ─────────────────────────────────────────────────────────────
 // User messages → SANS (human voice)
 // Assistant messages → MONO (system voice)
@@ -627,14 +696,18 @@ interface PortalDashboardProps {
 }
 
 export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
-  const { member, goals, levelEvents, nextSession, pastSessions, thomasFeed, featuresEnabled, chatHistory } = data;
+  const { member, goals, levelEvents, nextSession, pastSessions, thomasFeed, featuresEnabled, chatHistory, arrHistory } = data;
   const [showHistory, setShowHistory] = useState(false);
+  const [showArrHistory, setShowArrHistory] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(" ") || member.email;
 
   const isGraduated = member.arr_current >= 2_000_000;
-  const arrPct = isGraduated ? 100 : Math.round((member.arr_current / member.arr_target) * 100);
+  const _arrPrevRung = prevArrRung(member.arr_target);
+  const arrPct = isGraduated ? 100 : Math.max(0, Math.min(100, Math.round(
+    ((member.arr_current - _arrPrevRung) / (member.arr_target - _arrPrevRung)) * 100
+  )));
 
   const nextCallLabel = nextSession ? fmtDate(nextSession.scheduled_at) : "TBD";
   const nextCallDays = nextSession ? daysUntil(nextSession.scheduled_at) : null;
@@ -684,8 +757,16 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
           <span style={LABEL}>AI-Native Level</span>
         </div>
 
-        {/* ARR — spans cols 2–3 */}
-        <div className="col-span-2 flex flex-col justify-center gap-2 px-7" style={{ background: T.bg }}>
+        {/* ARR — spans cols 2–3, clickable to open history */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowArrHistory(true)}
+          onKeyDown={(e) => e.key === "Enter" && setShowArrHistory(true)}
+          className="col-span-2 flex flex-col justify-center gap-2 px-7 cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ background: T.bg }}
+          aria-label="View ARR history"
+        >
           <span style={LABEL}>ARR</span>
           {isGraduated ? (
             <>
@@ -782,7 +863,15 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
         </div>
 
         {/* ARR */}
-        <div className="px-5 py-4 flex flex-col gap-2" style={{ borderBottom: `1px solid ${T.border}` }}>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowArrHistory(true)}
+          onKeyDown={(e) => e.key === "Enter" && setShowArrHistory(true)}
+          className="px-5 py-4 flex flex-col gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ borderBottom: `1px solid ${T.border}` }}
+          aria-label="View ARR history"
+        >
           <span style={LABEL}>ARR</span>
           {isGraduated ? (
             <>
@@ -930,6 +1019,15 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
           arrCurrent={member.arr_current}
           events={levelEvents}
           onClose={() => setShowHistory(false)}
+        />
+      )}
+      {showArrHistory && (
+        <ArrHistoryDrawer
+          arrCurrent={member.arr_current}
+          arrTarget={member.arr_target}
+          arrPct={arrPct}
+          history={arrHistory}
+          onClose={() => setShowArrHistory(false)}
         />
       )}
       {showChat && <ChatSidebar chatHistory={chatHistory} onClose={() => setShowChat(false)} />}
