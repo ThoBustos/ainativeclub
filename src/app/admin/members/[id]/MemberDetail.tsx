@@ -1,18 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Member, Goal, LevelEvent, Session, ThomasFeedEntry, FeaturesEnabled } from "@/types";
-import { xpToNextLevel } from "@/types";
+import type { Member, Goal, LevelEvent, ThomasFeedEntry, FeaturesEnabled, CallWithSuggestions, GoalSuggestion, CallSkip, CallSchedule } from "@/types";
+import { xpToNextLevel, computeNextCallDate } from "@/types";
 import {
   activateMember, suspendMember, reactivateMember,
   addGoal, deleteGoal, approveGoal,
   grantXp,
   updateArrCurrent,
   addThomasFeedNote,
-  scheduleSession, completeSession,
+  setCallSchedule, skipNextCall,
+  logCall, deleteCall,
   updateFeature,
   updateMemberPhone,
+  acceptGoalSuggestion,
+  rejectGoalSuggestion,
 } from "@/app/actions/admin";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -48,10 +52,6 @@ function fmtArr(n: number): string {
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function fmtDatetime(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
@@ -128,17 +128,17 @@ function GoalsSection({ goals, memberId }: { goals: Goal[]; memberId: string }) 
       {active.length > 0 && (
         <div className="flex flex-col gap-px" style={{ background: T.border, borderRadius: 5, overflow: "hidden" }}>
           {active.map(g => {
-            const isPending = !!g.submitted_at;
+            const isPendingApproval = !!g.submitted_at;
             return (
               <div key={g.id} className="flex items-center gap-3 px-4 py-3" style={{ background: T.surfaceLow }}>
                 <div className="flex-1 min-w-0">
                   <span style={{ ...SANS, fontSize: 13, color: T.fg }}>{g.title}</span>
-                  {isPending && (
+                  {isPendingApproval && (
                     <span style={{ ...MONO, fontSize: 11, color: T.amber, marginLeft: 8 }}>● submitted</span>
                   )}
                 </div>
                 <span style={{ ...MONO, fontSize: 12, color: T.amber, flexShrink: 0 }}>+{g.xp}XP</span>
-                {isPending && (
+                {isPendingApproval && (
                   <button onClick={() => handleApprove(g.id)} style={{ ...btnPrimary, padding: "4px 12px", fontSize: 11 }}>
                     APPROVE
                   </button>
@@ -439,104 +439,406 @@ function FeedSection({ memberId, feed }: { memberId: string; feed: ThomasFeedEnt
   );
 }
 
-// ─── Sessions section ─────────────────────────────────────────────────────────
+// ─── Call schedule section ────────────────────────────────────────────────────
 
-function SessionsSection({ sessions, memberId }: { sessions: Session[]; memberId: string }) {
-  const [scheduledAt, setScheduledAt] = useState("");
-  const [completingId, setCompletingId] = useState<string | null>(null);
-  const [completionNotes, setCompletionNotes] = useState("");
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function CallScheduleSection({
+  member,
+  callSkips,
+}: {
+  member: Member;
+  callSkips: CallSkip[];
+}) {
+  const existing = member.call_schedule as CallSchedule | null;
+  const scheduleStart = member.call_schedule_start as string | null;
+
+  const [frequency, setFrequency] = useState<'weekly' | 'biweekly'>(existing?.frequency ?? 'weekly');
+  const [dayOfWeek, setDayOfWeek] = useState(existing?.day_of_week ?? 5);
+  const [hour, setHour] = useState(existing?.hour ?? 18);
+  const [minute, setMinute] = useState(existing?.minute ?? 0);
+  const [timezone, setTimezone] = useState(existing?.timezone ?? 'Europe/Paris');
+  const [startDate, setStartDate] = useState(scheduleStart ?? '');
   const [isPending, startTransition] = useTransition();
 
-  function handleSchedule() {
-    if (!scheduledAt) return;
+  const skips = callSkips.map(s => s.skipped_date);
+  const nextDate = existing
+    ? computeNextCallDate(existing, scheduleStart, skips)
+    : null;
+
+  function handleSave() {
+    const schedule: CallSchedule = { frequency, day_of_week: dayOfWeek, hour, minute, timezone };
     startTransition(async () => {
-      await scheduleSession(memberId, new Date(scheduledAt).toISOString());
-      setScheduledAt("");
+      await setCallSchedule(member.id, schedule, startDate || undefined);
     });
   }
 
-  function handleComplete(sessionId: string) {
+  function handleClear() {
     startTransition(async () => {
-      await completeSession(sessionId, memberId, completionNotes.trim());
-      setCompletingId(null);
-      setCompletionNotes("");
+      await setCallSchedule(member.id, null);
     });
   }
 
-  const upcoming = sessions.filter(s => !s.completed_at);
-  const past = sessions.filter(s => !!s.completed_at);
+  function handleSkip() {
+    if (!nextDate) return;
+    startTransition(async () => {
+      await skipNextCall(member.id, nextDate);
+    });
+  }
 
   return (
-    <Section title="Sessions">
-      {/* Schedule new */}
+    <Section title="Call Schedule">
+      {existing && (
+        <div className="flex flex-col gap-1">
+          <span style={{ ...MONO, fontSize: 13, color: T.fg }}>
+            Every {existing.frequency === 'biweekly' ? 'other ' : ''}{DAY_NAMES[existing.day_of_week]} at {String(existing.hour).padStart(2, '0')}:{String(existing.minute).padStart(2, '0')} {existing.timezone}
+          </span>
+          {nextDate && (
+            <span style={{ ...MONO, fontSize: 11, color: T.amber }}>
+              Next: {nextDate}
+            </span>
+          )}
+          {!nextDate && (
+            <span style={{ ...MONO, fontSize: 11, color: T.fgMute }}>
+              No upcoming date in next 90 days
+            </span>
+          )}
+        </div>
+      )}
+
+      {!existing && (
+        <p style={{ ...SANS, fontSize: 13, color: T.fgMute }}>No schedule set.</p>
+      )}
+
       <div className="flex flex-col gap-2">
-        <span style={{ ...MONO, fontSize: 11, color: T.fgDim, letterSpacing: "0.08em" }}>SCHEDULE SESSION</span>
+        <span style={{ ...MONO, fontSize: 11, color: T.fgDim, letterSpacing: "0.08em" }}>SET SCHEDULE</span>
         <div className="flex gap-2 flex-wrap">
+          <select
+            value={frequency}
+            onChange={e => setFrequency(e.target.value as 'weekly' | 'biweekly')}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Biweekly</option>
+          </select>
+          <select
+            value={dayOfWeek}
+            onChange={e => setDayOfWeek(parseInt(e.target.value))}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            {DAY_NAMES.map((d, i) => (
+              <option key={i} value={i}>{d}</option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              value={hour}
+              onChange={e => setHour(parseInt(e.target.value))}
+              min={0} max={23}
+              style={{ ...inputStyle, width: 60 }}
+            />
+            <span style={{ ...MONO, fontSize: 13, color: T.fgMute }}>:</span>
+            <input
+              type="number"
+              value={minute}
+              onChange={e => setMinute(parseInt(e.target.value))}
+              min={0} max={59}
+              style={{ ...inputStyle, width: 60 }}
+            />
+          </div>
           <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={e => setScheduledAt(e.target.value)}
+            type="text"
+            value={timezone}
+            onChange={e => setTimezone(e.target.value)}
+            placeholder="Europe/Paris"
+            style={{ ...inputStyle, width: 160 }}
+          />
+        </div>
+        {frequency === 'biweekly' && (
+          <div className="flex items-center gap-2">
+            <span style={{ ...MONO, fontSize: 11, color: T.fgDim }}>Start date (for week parity):</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              style={{ ...inputStyle, colorScheme: "dark" }}
+            />
+          </div>
+        )}
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={handleSave} disabled={isPending} style={btnPrimary}>
+            SAVE SCHEDULE
+          </button>
+          {existing && (
+            <button onClick={handleClear} disabled={isPending} style={btnSecondary}>
+              CLEAR
+            </button>
+          )}
+          {existing && nextDate && (
+            <button onClick={handleSkip} disabled={isPending} style={btnSecondary}>
+              SKIP {nextDate}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {callSkips.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span style={{ ...MONO, fontSize: 11, color: T.fgDim, letterSpacing: "0.08em" }}>SKIPPED DATES</span>
+          <div className="flex flex-wrap gap-2">
+            {callSkips.map(s => (
+              <span key={s.id} style={{ ...MONO, fontSize: 11, color: T.fgMute, background: T.surfaceLow, padding: "3px 8px", borderRadius: 3 }}>
+                {s.skipped_date}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </Section>
+  );
+}
+
+// ─── Calls section ────────────────────────────────────────────────────────────
+
+const spinnerStyle: React.CSSProperties = {
+  width: 12, height: 12, borderRadius: "50%",
+  border: `2px solid ${T.fgDim}`,
+  borderTopColor: T.amber,
+  display: "inline-block",
+  animation: "spin 0.8s linear infinite",
+  flexShrink: 0,
+};
+
+function CallsSection({
+  calls,
+  memberId,
+}: {
+  calls: CallWithSuggestions[];
+  memberId: string;
+}) {
+  const router = useRouter();
+  const [rawText, setRawText] = useState("");
+  const [callDate, setCallDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [isPending, startTransition] = useTransition();
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const hasProcessing = calls.some(c => c.status === "processing");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (hasProcessing) {
+      intervalRef.current = setInterval(() => router.refresh(), 3000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [hasProcessing, router]);
+
+  function handleLog() {
+    if (!rawText.trim() || !callDate) return;
+    startTransition(async () => {
+      await logCall(memberId, callDate, rawText.trim());
+      setRawText("");
+      setCallDate(new Date().toISOString().split('T')[0]);
+    });
+  }
+
+  function handleAccept(suggestionId: string) {
+    setProcessingIds(prev => new Set(prev).add(suggestionId));
+    startTransition(async () => {
+      await acceptGoalSuggestion(suggestionId, memberId);
+      setProcessingIds(prev => { const s = new Set(prev); s.delete(suggestionId); return s; });
+    });
+  }
+
+  function handleReject(suggestionId: string) {
+    setProcessingIds(prev => new Set(prev).add(suggestionId));
+    startTransition(async () => {
+      await rejectGoalSuggestion(suggestionId, memberId);
+      setProcessingIds(prev => { const s = new Set(prev); s.delete(suggestionId); return s; });
+    });
+  }
+
+  function handleCopy(callId: string, text: string | null) {
+    navigator.clipboard.writeText(text ?? "");
+    setCopiedId(callId);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
+
+  function handleDelete(callId: string) {
+    if (!confirm("Delete this call? This cannot be undone.")) return;
+    startTransition(async () => {
+      await deleteCall(callId, memberId);
+    });
+  }
+
+  const pendingSuggestions = (suggestions: GoalSuggestion[]) =>
+    suggestions.filter(s => s.status === "pending");
+
+  return (
+    <Section title="Calls">
+      {/* Log form */}
+      <div className="flex flex-col gap-2">
+        <span style={{ ...MONO, fontSize: 11, color: T.fgDim, letterSpacing: "0.08em" }}>LOG CALL</span>
+        <div className="flex gap-2 flex-wrap items-center">
+          <input
+            type="date"
+            value={callDate}
+            onChange={e => setCallDate(e.target.value)}
             style={{ ...inputStyle, colorScheme: "dark" }}
           />
-          <button onClick={handleSchedule} disabled={!scheduledAt || isPending} style={btnPrimary}>
-            SCHEDULE
+        </div>
+        <textarea
+          value={rawText}
+          onChange={e => setRawText(e.target.value)}
+          placeholder="Paste full transcript here..."
+          rows={5}
+          style={{ ...inputStyle, width: "100%", resize: "vertical", lineHeight: 1.5 }}
+        />
+        <div>
+          <button
+            onClick={handleLog}
+            disabled={!rawText.trim() || !callDate || isPending}
+            style={btnPrimary}
+          >
+            {isPending ? "PROCESSING..." : "PROCESS"}
           </button>
         </div>
       </div>
 
-      {/* Upcoming */}
-      {upcoming.length > 0 && (
+      {/* Calls list */}
+      {calls.length > 0 && (
         <div className="flex flex-col gap-px" style={{ background: T.border, borderRadius: 5, overflow: "hidden" }}>
-          {upcoming.map(s => (
-            <div key={s.id} className="flex flex-col gap-2 px-4 py-3" style={{ background: T.surfaceLow }}>
-              <div className="flex items-center justify-between gap-3">
-                <span style={{ ...MONO, fontSize: 13, color: T.fg }}>{fmtDatetime(s.scheduled_at)}</span>
-                <button
-                  onClick={() => setCompletingId(completingId === s.id ? null : s.id)}
-                  style={btnSecondary}
-                >
-                  MARK COMPLETE
-                </button>
-              </div>
-              {completingId === s.id && (
-                <div className="flex flex-col gap-2 pt-2" style={{ borderTop: `1px solid ${T.border}` }}>
-                  <textarea
-                    value={completionNotes}
-                    onChange={e => setCompletionNotes(e.target.value)}
-                    placeholder="Session notes (optional)..."
-                    rows={2}
-                    style={{ ...inputStyle, width: "100%", resize: "vertical", lineHeight: 1.5 }}
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => handleComplete(s.id)} disabled={isPending} style={btnPrimary}>
-                      COMPLETE + GRANT 25 XP
+          {calls.map(c => {
+            const pending = pendingSuggestions(c.goal_suggestions);
+            const isProcessing = c.status === "processing";
+
+            return (
+              <div key={c.id} className="flex flex-col gap-3 px-4 py-4" style={{ background: T.surfaceLow }}>
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>
+                      {c.call_date}
+                    </span>
+                    <span style={{
+                      ...MONO, fontSize: 9, letterSpacing: "0.1em",
+                      color: c.status === "published" ? T.green : c.status === "failed" ? T.red : T.amber,
+                      background: c.status === "published" ? "oklch(0.15 0.05 145)" : c.status === "failed" ? "oklch(0.15 0.05 25)" : "oklch(0.15 0.08 55)",
+                      padding: "2px 7px", borderRadius: 3,
+                    }}>
+                      {c.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopy(c.id, c.raw_text)}
+                      style={{ ...MONO, fontSize: 11, color: T.fgDim, background: "none", border: "none", cursor: "pointer", letterSpacing: "0.06em" }}
+                    >
+                      {copiedId === c.id ? "COPIED" : "COPY"}
                     </button>
-                    <button onClick={() => setCompletingId(null)} style={btnSecondary}>
-                      CANCEL
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      disabled={isPending}
+                      style={{ ...MONO, fontSize: 11, color: T.red, background: "none", border: "none", cursor: "pointer", letterSpacing: "0.06em" }}
+                    >
+                      DELETE
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
 
-      {/* Past sessions */}
-      {past.length > 0 && (
-        <details>
-          <summary style={{ ...MONO, fontSize: 11, color: T.fgMute, cursor: "pointer", letterSpacing: "0.06em" }}>
-            {past.length} PAST SESSION{past.length > 1 ? "S" : ""}
-          </summary>
-          <div className="flex flex-col gap-px mt-2" style={{ background: T.border, borderRadius: 5, overflow: "hidden" }}>
-            {past.map(s => (
-              <div key={s.id} className="flex flex-col gap-1 px-4 py-3" style={{ background: T.surfaceLow }}>
-                <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>{fmtDatetime(s.scheduled_at)}</span>
-                {s.notes && <p style={{ ...SANS, fontSize: 12, color: T.fgMute, lineHeight: 1.4 }}>{s.notes}</p>}
+                {/* Processing state */}
+                {isProcessing && (
+                  <div className="flex items-center gap-2">
+                    <span style={spinnerStyle} />
+                    <span style={{ ...MONO, fontSize: 12, color: T.fgDim }}>Extracting...</span>
+                  </div>
+                )}
+                {c.status === "failed" && (
+                  <span style={{ ...MONO, fontSize: 12, color: T.red }}>
+                    Extraction failed — DELETE and retry
+                  </span>
+                )}
+
+                {/* Summary */}
+                {c.summary && (
+                  <p style={{ ...SANS, fontSize: 13, color: T.fgMid, lineHeight: 1.5 }}>
+                    {c.summary}
+                  </p>
+                )}
+
+                {/* Key learnings */}
+                {c.key_learnings && Array.isArray(c.key_learnings) && (c.key_learnings as string[]).length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <span style={{ ...MONO, fontSize: 10, color: T.fgDim, letterSpacing: "0.08em" }}>KEY LEARNINGS</span>
+                    <ul className="flex flex-col gap-0.5" style={{ paddingLeft: 12 }}>
+                      {(c.key_learnings as string[]).map((l, i) => (
+                        <li key={i} style={{ ...SANS, fontSize: 12, color: T.fgMute, lineHeight: 1.4, listStyleType: "disc" }}>
+                          {l}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Goal suggestions */}
+                {pending.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <span style={{ ...MONO, fontSize: 10, color: T.fgDim, letterSpacing: "0.08em" }}>SUGGESTED GOALS</span>
+                    {pending.map(sg => (
+                      <div key={sg.id} className="flex items-center justify-between gap-3 flex-wrap px-3 py-2" style={{ background: T.bg, borderRadius: 4 }}>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <span style={{ ...MONO, fontSize: 11, color: T.amber, flexShrink: 0 }}>
+                            {sg.xp} XP
+                          </span>
+                          <span style={{ ...SANS, fontSize: 13, color: T.fg }}>
+                            {sg.title}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => handleAccept(sg.id)}
+                            disabled={processingIds.has(sg.id)}
+                            style={{ ...btnPrimary, padding: "5px 12px" }}
+                          >
+                            ACCEPT
+                          </button>
+                          <button
+                            onClick={() => handleReject(sg.id)}
+                            disabled={processingIds.has(sg.id)}
+                            style={{ ...btnSecondary, padding: "5px 12px" }}
+                          >
+                            REJECT
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Raw text toggle */}
+                {c.raw_text && (
+                  <details>
+                    <summary style={{ ...MONO, fontSize: 10, color: T.fgDim, cursor: "pointer", letterSpacing: "0.06em" }}>
+                      RAW TRANSCRIPT
+                    </summary>
+                    <pre style={{
+                      ...MONO, fontSize: 11, color: T.fgMute, lineHeight: 1.5,
+                      whiteSpace: "pre-wrap", wordBreak: "break-word",
+                      marginTop: 8, padding: 12,
+                      background: T.bg, borderRadius: 4,
+                      maxHeight: 300, overflowY: "auto",
+                    }}>
+                      {c.raw_text}
+                    </pre>
+                  </details>
+                )}
               </div>
-            ))}
-          </div>
-        </details>
+            );
+          })}
+        </div>
       )}
     </Section>
   );
@@ -597,7 +899,6 @@ function PhoneSection({ member }: { member: Member }) {
 // ─── Features section ─────────────────────────────────────────────────────────
 
 const FEATURE_LABELS: { key: keyof FeaturesEnabled; label: string; hint: string }[] = [
-  { key: "session_log",  label: "Session Log",  hint: "After first completed call" },
   { key: "insights",     label: "Insights",     hint: "Level 10+ or manual" },
   { key: "playbooks",    label: "Playbooks",    hint: "Thomas publishes one for you" },
   { key: "community",    label: "Community",    hint: "Thomas grants manually" },
@@ -650,11 +951,12 @@ interface MemberDetailProps {
   member: Member;
   goals: Goal[];
   levelEvents: LevelEvent[];
-  sessions: Session[];
+  calls: CallWithSuggestions[];
+  callSkips: CallSkip[];
   thomasFeed: ThomasFeedEntry[];
 }
 
-export function MemberDetail({ member, goals, levelEvents, sessions, thomasFeed }: MemberDetailProps) {
+export function MemberDetail({ member, goals, levelEvents, calls, callSkips, thomasFeed }: MemberDetailProps) {
   const [isPending, startTransition] = useTransition();
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(" ") || member.email;
   const arrPct = member.arr_target > 0 ? Math.min(100, Math.round((member.arr_current / member.arr_target) * 100)) : 0;
@@ -756,7 +1058,8 @@ export function MemberDetail({ member, goals, levelEvents, sessions, thomasFeed 
         <XpSection member={member} levelEvents={levelEvents} />
         <ArrSection member={member} />
         <FeedSection memberId={member.id} feed={thomasFeed} />
-        <SessionsSection sessions={sessions} memberId={member.id} />
+        <CallScheduleSection member={member} callSkips={callSkips} />
+        <CallsSection calls={calls} memberId={member.id} />
         <PhoneSection member={member} />
         <FeaturesSection member={member} />
 

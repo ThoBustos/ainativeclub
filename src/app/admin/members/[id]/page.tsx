@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { CallWithSuggestions, CallSkip } from "@/types";
 import { MemberDetail } from "./MemberDetail";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +9,12 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const db = createAdminClient();
 
-  const [memberRes, goalsRes, eventsRes, sessionsRes, feedRes] = await Promise.all([
+  const [memberRes, goalsRes, eventsRes, callsRes, skipsRes, feedRes] = await Promise.all([
     db.from("members").select("*").eq("id", id).single(),
     db.from("goals").select("*").eq("member_id", id).order("created_at", { ascending: true }),
     db.from("level_events").select("*").eq("member_id", id).order("created_at", { ascending: false }).limit(20),
-    db.from("sessions").select("*").eq("member_id", id).order("scheduled_at", { ascending: false }),
+    db.from("calls").select("*, goal_suggestions(*)").eq("member_id", id).order("call_date", { ascending: false }),
+    db.from("call_skips").select("*").eq("member_id", id).order("skipped_date", { ascending: true }),
     db.from("thomas_feed").select("*").eq("member_id", id).order("created_at", { ascending: false }),
   ]);
 
@@ -23,7 +25,8 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
       member={memberRes.data}
       goals={goalsRes.data ?? []}
       levelEvents={eventsRes.data ?? []}
-      sessions={sessionsRes.data ?? []}
+      calls={(callsRes.data ?? []) as CallWithSuggestions[]}
+      callSkips={(skipsRes.data ?? []) as CallSkip[]}
       thomasFeed={feedRes.data ?? []}
     />
   );

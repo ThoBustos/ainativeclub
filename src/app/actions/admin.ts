@@ -352,8 +352,17 @@ export async function setCallSchedule(memberId: string, schedule: CallSchedule |
   await requireAdmin();
   const db = createAdminClient();
 
+  let existingSkips: string[] = [];
+  if (schedule) {
+    const { data: skips } = await db
+      .from("call_skips")
+      .select("skipped_date")
+      .eq("member_id", memberId);
+    existingSkips = (skips ?? []).map(s => s.skipped_date);
+  }
+
   const nextCallAt = schedule
-    ? computeNextCallDate(schedule, scheduleStart ?? null, [])
+    ? computeNextCallDate(schedule, scheduleStart ?? null, existingSkips)
     : null;
 
   await db.from("members").update({
