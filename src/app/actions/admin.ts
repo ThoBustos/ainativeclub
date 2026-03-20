@@ -7,57 +7,17 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { serverEnv } from "@/lib/env";
 import { escapeHtml } from "@/lib/utils";
-import { xpToNextLevel, nextArrRung } from "@/types";
-import type { LevelEventType, ArrHistoryEntry, FeaturesEnabled } from "@/types";
+import { nextArrRung } from "@/types";
+import type { ArrHistoryEntry, FeaturesEnabled, CallSchedule } from "@/types";
+import type { Json } from "@/lib/database.types";
+import { applyXpGrant } from "@/lib/xp";
+import { computeNextCallDate } from "@/types";
 
 async function requireAdmin() {
   const h = await headers();
   if (h.get("x-member-role") !== "admin") {
     throw new Error("Forbidden");
   }
-}
-
-// ─── Internal XP helper ───────────────────────────────────────────────────────
-// Adds XP to a member, handles level-ups, inserts level_event row.
-
-async function applyXpGrant(
-  db: ReturnType<typeof createAdminClient>,
-  memberId: string,
-  xp: number,
-  action: string,
-  eventType: LevelEventType,
-) {
-  const { data: m } = await db
-    .from("members")
-    .select("level, xp_current, arr_current")
-    .eq("id", memberId)
-    .single();
-
-  if (!m) throw new Error("Member not found");
-
-  const threshold = xpToNextLevel(m.arr_current);
-  let xpNew = m.xp_current + xp;
-  let levelNew = m.level;
-
-  // Handle level-ups (including multi-level from large grants)
-  while (xpNew >= threshold) {
-    xpNew -= threshold;
-    levelNew++;
-  }
-
-  const [updateResult, insertResult] = await Promise.all([
-    db.from("members").update({ xp_current: xpNew, level: levelNew }).eq("id", memberId),
-    db.from("level_events").insert({
-      member_id: memberId,
-      event_type: eventType,
-      action,
-      xp,
-      level_after: levelNew,
-    }),
-  ]);
-
-  if (updateResult.error) throw new Error("XP update failed: " + updateResult.error.message);
-  if (insertResult.error) throw new Error("Level event insert failed: " + insertResult.error.message);
 }
 
 // ─── Invite ───────────────────────────────────────────────────────────────────
@@ -386,43 +346,113 @@ export async function addThomasFeedNote(memberId: string, note: string) {
   revalidatePath("/portal");
 }
 
-// ─── Sessions ─────────────────────────────────────────────────────────────────
+// ─── Call schedule ────────────────────────────────────────────────────────────
 
-export async function scheduleSession(memberId: string, scheduledAt: string) {
+export async function setCallSchedule(memberId: string, schedule: CallSchedule | null, scheduleStart?: string) {
   await requireAdmin();
   const db = createAdminClient();
 
-  // Store scheduled time and update next_call_at on member
-  const [sessionResult] = await Promise.all([
-    db.from("sessions").insert({ member_id: memberId, scheduled_at: scheduledAt }),
-    db.from("members").update({ next_call_at: scheduledAt }).eq("id", memberId),
-  ]);
+  const nextCallAt = schedule
+    ? computeNextCallDate(schedule, scheduleStart ?? null, [])
+    : null;
 
-  if (sessionResult.error) throw new Error("Failed to schedule session: " + sessionResult.error.message);
+  await db.from("members").update({
+    call_schedule: schedule as Json,
+    call_schedule_start: scheduleStart ?? null,
+    next_call_at: nextCallAt,
+  }).eq("id", memberId);
+
+  if (!schedule) {
+    await db.from("call_skips").delete().eq("member_id", memberId);
+  }
+
+  revalidatePath(`/admin/members/${memberId}`);
+  revalidatePath("/admin");
+}
+
+export async function skipNextCall(memberId: string, date: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+
+  await db.from("call_skips").upsert({ member_id: memberId, skipped_date: date });
+
+  // Recompute next_call_at with the new skip included
+  const { data: m } = await db
+    .from("members")
+    .select("call_schedule, call_schedule_start")
+    .eq("id", memberId)
+    .single();
+
+  if (m?.call_schedule) {
+    const { data: skips } = await db
+      .from("call_skips")
+      .select("skipped_date")
+      .eq("member_id", memberId);
+
+    const nextCallAt = computeNextCallDate(
+      m.call_schedule as unknown as import("@/types").CallSchedule,
+      m.call_schedule_start as string | null,
+      (skips ?? []).map(s => s.skipped_date),
+    );
+
+    await db.from("members").update({ next_call_at: nextCallAt }).eq("id", memberId);
+  }
+
+  revalidatePath(`/admin/members/${memberId}`);
+  revalidatePath("/admin");
+}
+
+// ─── Calls ────────────────────────────────────────────────────────────────────
+
+export async function logCall(memberId: string, callDate: string, rawText: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+  const { data, error } = await db.from("calls").insert({
+    member_id: memberId,
+    call_date: callDate,
+    raw_text: rawText,
+    status: "processing",
+  }).select("id").single();
+  if (error || !data) throw new Error("Failed to save call");
+  const { inngest } = await import("@/inngest/client");
+  await inngest.send({ name: "call/transcript.uploaded", data: { callId: data.id, memberId } });
+  revalidatePath(`/admin/members/${memberId}`);
+  return { callId: data.id };
+}
+
+export async function deleteCall(callId: string, memberId: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+  await db.from("calls").delete().eq("id", callId);
+  revalidatePath(`/admin/members/${memberId}`);
+}
+
+export async function acceptGoalSuggestion(suggestionId: string, memberId: string) {
+  await requireAdmin();
+  const db = createAdminClient();
+
+  const { data: suggestion } = await db
+    .from("goal_suggestions")
+    .select("title, xp")
+    .eq("id", suggestionId)
+    .single();
+
+  if (!suggestion) throw new Error("Suggestion not found");
+
+  await Promise.all([
+    db.from("goal_suggestions").update({ status: "accepted" }).eq("id", suggestionId),
+    db.from("goals").insert({ member_id: memberId, title: suggestion.title, xp: suggestion.xp }),
+  ]);
 
   revalidatePath(`/admin/members/${memberId}`);
   revalidatePath("/portal");
 }
 
-export async function completeSession(sessionId: string, memberId: string, notes: string) {
+export async function rejectGoalSuggestion(suggestionId: string, memberId: string) {
   await requireAdmin();
   const db = createAdminClient();
-
-  const { error } = await db.from("sessions").update({
-    completed_at: new Date().toISOString(),
-    notes,
-  }).eq("id", sessionId);
-
-  if (error) throw new Error("Failed to complete session: " + error.message);
-
-  // Clear next_call_at — will be re-set when next session is scheduled
-  await db.from("members").update({ next_call_at: null }).eq("id", memberId);
-
-  // +25 XP for attending the call
-  await applyXpGrant(db, memberId, 25, "Call attended", "call_attended");
-
+  await db.from("goal_suggestions").update({ status: "rejected" }).eq("id", suggestionId);
   revalidatePath(`/admin/members/${memberId}`);
-  revalidatePath("/portal");
 }
 
 // ─── Phone ────────────────────────────────────────────────────────────────────
