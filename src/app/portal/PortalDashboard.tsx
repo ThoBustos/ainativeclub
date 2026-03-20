@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Lock, MessageSquare, X, ChevronRight, LogOut } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
-import type { PortalData, Goal, LevelEvent, ThomasFeedEntry, Session, FeaturesEnabled, Message, ArrHistoryEntry } from "@/types";
+import type { PortalData, Goal, LevelEvent, ThomasFeedEntry, FeaturesEnabled, Message, ArrHistoryEntry, Call } from "@/types";
 import { xpToNextLevel, prevArrRung } from "@/types";
 import { fmtArr } from "@/lib/format";
 import { toggleGoalSubmitted } from "@/app/actions/portal";
@@ -138,55 +138,123 @@ function ThomasFeedTile({ entries }: { entries: ThomasFeedEntry[] }) {
   );
 }
 
+// ─── Transcript Drawer ────────────────────────────────────────────────────────
+
+function TranscriptDrawer({ call, onClose }: { call: Call; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(call.raw_text ?? "");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: "oklch(0 0 0 / 0.55)" }} onClick={onClose} />
+      <aside
+        className="fixed right-0 top-0 h-full z-50 flex flex-col w-full sm:w-[480px]"
+        style={{ background: T.surfaceLow, borderLeft: `1px solid ${T.border}` }}
+      >
+        <div className="flex items-start justify-between px-6 py-5 flex-none" style={{ borderBottom: `1px solid ${T.border}` }}>
+          <div className="flex flex-col gap-1">
+            <span style={LABEL}>Transcript</span>
+            <p style={{ ...MONO, fontSize: 14, fontWeight: 600, color: T.fg }}>
+              {fmtDate(call.call_date)}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleCopy}
+              style={{
+                ...MONO, fontSize: 11, letterSpacing: "0.06em",
+                background: "transparent", color: copied ? "oklch(0.70 0.15 145)" : T.fgMute,
+                border: `1px solid ${copied ? "oklch(0.70 0.15 145)" : T.border}`,
+                borderRadius: 4, padding: "5px 12px", cursor: "pointer",
+              }}
+            >
+              {copied ? "COPIED" : "COPY"}
+            </button>
+            <button onClick={onClose} style={{ color: T.fgMute, cursor: "pointer" }} aria-label="Close">
+              <X size={17} strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+
+        {call.summary && (
+          <div className="px-6 py-4 flex-none" style={{ borderBottom: `1px solid ${T.border}` }}>
+            <p style={{ ...SANS, fontSize: 13, color: T.fgMid, lineHeight: 1.5 }}>{call.summary}</p>
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <pre style={{
+            ...MONO, fontSize: 12, color: T.fgMute, lineHeight: 1.6,
+            whiteSpace: "pre-wrap", wordBreak: "break-word",
+          }}>
+            {call.raw_text}
+          </pre>
+        </div>
+      </aside>
+    </>
+  );
+}
+
 // ─── Session Log tile ─────────────────────────────────────────────────────────
 
-function SessionLogTile({ nextSession, pastSessions }: { nextSession: Session | null; pastSessions: Session[] }) {
+function SessionLogTile({ calls }: { calls: Call[] }) {
+  const [openCall, setOpenCall] = useState<Call | null>(null);
+
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ background: T.surfaceLow }}>
       <div className="px-5 pt-5 pb-3 flex-none">
         <span style={LABEL}>Session Log</span>
       </div>
 
-      {/* Upcoming */}
-      <div className="px-5 pb-3 flex-none" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
-        {nextSession ? (
-          <div className="flex flex-col gap-0.5">
-            <span style={{ ...MONO, fontSize: 18, fontWeight: 700, color: T.fg }}>
-              {fmtDate(nextSession.scheduled_at)}
-            </span>
-            <span style={{ ...MONO, fontSize: 10, color: T.amber, letterSpacing: "0.08em" }}>UPCOMING</span>
-          </div>
-        ) : (
-          <span style={{ ...SANS, fontSize: 12, color: T.fgMute, lineHeight: 1.4 }}>
-            No upcoming session scheduled.
-          </span>
-        )}
-      </div>
-
-      {/* Past sessions */}
+      {/* Past calls */}
       <div className="flex-1 overflow-y-auto">
-        {pastSessions.length === 0 ? (
+        {calls.length === 0 ? (
           <p style={{ ...SANS, fontSize: 12, color: T.fgDim, padding: "12px 20px", lineHeight: 1.4 }}>
             No completed sessions yet.
           </p>
         ) : (
-          pastSessions.map((s) => (
+          calls.map((c) => (
             <div
-              key={s.id}
-              className="flex flex-col gap-0.5 px-5 py-2.5"
+              key={c.id}
+              className="flex flex-col gap-1 px-5 py-2.5"
               style={{ borderBottom: `1px solid ${T.borderSub}` }}
             >
-              <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>{fmtDate(s.completed_at!)}</span>
-              {s.notes && (
+              <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>{fmtDate(c.call_date)}</span>
+              {c.summary && (
                 <p style={{ ...SANS, fontSize: 11, color: T.fgMute, lineHeight: 1.4 }}
                    className="line-clamp-2">
-                  {s.notes}
+                  {c.summary}
                 </p>
+              )}
+              {c.raw_text && (
+                <button
+                  onClick={() => setOpenCall(c)}
+                  style={{
+                    ...MONO, fontSize: 10, letterSpacing: "0.06em",
+                    background: "transparent", color: T.fgDim,
+                    border: "none", padding: 0, cursor: "pointer",
+                    textAlign: "left", width: "fit-content",
+                  }}
+                >
+                  VIEW TRANSCRIPT
+                </button>
               )}
             </div>
           ))
         )}
       </div>
+
+      {openCall && (
+        <TranscriptDrawer
+          call={openCall}
+          onClose={() => setOpenCall(null)}
+        />
+      )}
     </div>
   );
 }
@@ -392,7 +460,7 @@ function LevelHistoryDrawer({
               </p>
             </div>
           ) : (
-            events.map((entry, i) => (
+            events.map((entry) => (
               <div key={entry.id} className="flex items-start gap-4 px-6 py-4" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
                 <span style={{ ...MONO, fontSize: 11, color: T.fgMute, whiteSpace: "nowrap", paddingTop: 2 }}>
                   {fmtDate(entry.created_at)}
@@ -679,7 +747,47 @@ function ChatSidebar({
   );
 }
 
-// ─── Bottom tile config ───────────────────────────────────────────────────────
+// ─── Mobile Session Log ───────────────────────────────────────────────────────
+
+function MobileSessionLog({ calls }: { calls: Call[] }) {
+  const [openCall, setOpenCall] = useState<Call | null>(null);
+
+  return (
+    <div style={{ borderBottom: `1px solid ${T.border}` }}>
+      <div className="px-5 pt-4 pb-3">
+        <span style={LABEL}>Session Log</span>
+      </div>
+      {calls.length === 0 ? (
+        <p style={{ ...SANS, fontSize: 12, color: T.fgMute, padding: "0 20px 12px" }}>No completed sessions yet.</p>
+      ) : (
+        calls.map((c) => (
+          <div key={c.id} className="flex flex-col gap-1 px-5 py-2.5" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
+            <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>{fmtDate(c.call_date)}</span>
+            {c.summary && (
+              <p style={{ ...SANS, fontSize: 11, color: T.fgMute, lineHeight: 1.4 }}>{c.summary}</p>
+            )}
+            {c.raw_text && (
+              <button
+                onClick={() => setOpenCall(c)}
+                style={{
+                  ...MONO, fontSize: 10, letterSpacing: "0.06em",
+                  background: "transparent", color: T.fgDim,
+                  border: "none", padding: 0, cursor: "pointer",
+                  textAlign: "left", width: "fit-content",
+                }}
+              >
+                VIEW TRANSCRIPT
+              </button>
+            )}
+          </div>
+        ))
+      )}
+      {openCall && (
+        <TranscriptDrawer call={openCall} onClose={() => setOpenCall(null)} />
+      )}
+    </div>
+  );
+}
 
 const BOTTOM_TILES_CONFIG: { key: keyof FeaturesEnabled; label: string; teaser: string }[] = [
   { key: "insights",   label: "Insights",   teaser: "Patterns Thomas sees across founders at your stage" },
@@ -696,7 +804,7 @@ interface PortalDashboardProps {
 }
 
 export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
-  const { member, goals, levelEvents, nextSession, pastSessions, thomasFeed, featuresEnabled, chatHistory, arrHistory } = data;
+  const { member, goals, levelEvents, nextCallDate, calls, thomasFeed, featuresEnabled, chatHistory, arrHistory } = data;
   const [showHistory, setShowHistory] = useState(false);
   const [showArrHistory, setShowArrHistory] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -709,11 +817,10 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
     ((member.arr_current - _arrPrevRung) / (member.arr_target - _arrPrevRung)) * 100
   )));
 
-  const nextCallLabel = nextSession ? fmtDate(nextSession.scheduled_at) : "TBD";
-  const nextCallDays = nextSession ? daysUntil(nextSession.scheduled_at) : null;
+  const nextCallLabel = nextCallDate ? fmtDate(nextCallDate) : "TBD";
+  const nextCallDays = nextCallDate ? daysUntil(nextCallDate) : null;
 
   const thomasFeedUnlocked = thomasFeed.length > 0;
-  const sessionLogUnlocked = featuresEnabled.session_log;
 
   return (
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: T.border }}>
@@ -811,10 +918,7 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
           : <LockedTile label="Thomas Feed" teaser="Personal notes and observations from Thomas after each session" />
         }
 
-        {sessionLogUnlocked
-          ? <SessionLogTile nextSession={nextSession} pastSessions={pastSessions} />
-          : <LockedTile label="Session Log" teaser="Full transcripts and key decisions from every call" />
-        }
+        <SessionLogTile calls={calls} />
 
         {/* ── ROW 3 ── */}
 
@@ -934,38 +1038,7 @@ export function PortalDashboard({ data, signOut }: PortalDashboardProps) {
         )}
 
         {/* Session Log */}
-        {sessionLogUnlocked ? (
-          <div style={{ borderBottom: `1px solid ${T.border}` }}>
-            <div className="px-5 pt-4 pb-3">
-              <span style={LABEL}>Session Log</span>
-            </div>
-            {nextSession && (
-              <div className="px-5 pb-3" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
-                <p style={{ ...MONO, fontSize: 18, fontWeight: 700, color: T.fg }}>{fmtDate(nextSession.scheduled_at)}</p>
-                <span style={{ ...MONO, fontSize: 10, color: T.amber, letterSpacing: "0.08em" }}>UPCOMING</span>
-              </div>
-            )}
-            {!nextSession && (
-              <p style={{ ...SANS, fontSize: 12, color: T.fgMute, padding: "0 20px 12px" }}>No upcoming session.</p>
-            )}
-            {pastSessions.map((s) => (
-              <div key={s.id} className="px-5 py-2.5" style={{ borderBottom: `1px solid ${T.borderSub}` }}>
-                <span style={{ ...MONO, fontSize: 12, color: T.fgMid }}>{fmtDate(s.completed_at!)}</span>
-                {s.notes && (
-                  <p style={{ ...SANS, fontSize: 11, color: T.fgMute, lineHeight: 1.4, marginTop: 2 }}>{s.notes}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center gap-4 px-5 py-4" style={{ borderBottom: `1px solid ${T.border}`, background: T.surfaceLow }}>
-            <Lock size={15} strokeWidth={1.5} style={{ color: T.fgMute, flexShrink: 0 }} />
-            <div className="flex-1 min-w-0">
-              <span style={{ ...MONO, fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: T.fgMute }}>Session Log</span>
-              <p style={{ ...SANS, fontSize: 12, color: T.fgDim, lineHeight: 1.4, marginTop: 2 }}>Full transcripts and key decisions from every call</p>
-            </div>
-          </div>
-        )}
+        <MobileSessionLog calls={calls} />
 
         {/* Bottom feature tiles */}
         {BOTTOM_TILES_CONFIG.map(({ key, label, teaser }) => (

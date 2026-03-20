@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Member, Goal, ThomasFeedEntry, LevelEvent } from "@/types";
+import type { Member, Goal, ThomasFeedEntry, LevelEvent, Call } from "@/types";
 import { fmtArr } from "@/lib/format";
 
 export type MemberContext = {
@@ -7,15 +7,23 @@ export type MemberContext = {
   goals: Goal[];
   feed: ThomasFeedEntry[];
   events: LevelEvent[];
+  calls: Call[];
 };
 
 export async function fetchMemberContext(memberId: string): Promise<MemberContext | null> {
   const db = createAdminClient();
-  const [memberRes, goalsRes, feedRes, eventsRes] = await Promise.all([
+  const [memberRes, goalsRes, feedRes, eventsRes, callsRes] = await Promise.all([
     db.from("members").select("*").eq("id", memberId).single(),
     db.from("goals").select("*").eq("member_id", memberId).order("created_at", { ascending: true }),
     db.from("thomas_feed").select("*").eq("member_id", memberId).order("created_at", { ascending: false }).limit(5),
     db.from("level_events").select("*").eq("member_id", memberId).order("created_at", { ascending: false }).limit(10),
+    db.from("calls")
+      .select("id, call_date, summary, key_learnings, created_at")
+      .eq("member_id", memberId)
+      .eq("status", "published")
+      .not("summary", "is", null)
+      .order("call_date", { ascending: false })
+      .limit(5),
   ]);
 
   if (!memberRes.data) return null;
@@ -25,6 +33,7 @@ export async function fetchMemberContext(memberId: string): Promise<MemberContex
     goals: goalsRes.data ?? [],
     feed: feedRes.data ?? [],
     events: eventsRes.data ?? [],
+    calls: (callsRes.data ?? []) as Call[],
   };
 }
 
@@ -33,6 +42,7 @@ export function buildSystemPrompt(
   goals: Goal[],
   feed: ThomasFeedEntry[],
   events: LevelEvent[],
+  calls: Call[] = [],
 ): string {
   const name = [member.first_name, member.last_name].filter(Boolean).join(" ") || member.email;
   const activeGoals = goals.filter(g => !g.completed_at);
@@ -54,6 +64,16 @@ export function buildSystemPrompt(
     ? events.map(e => `[${new Date(e.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}] ${e.action} (+${e.xp} XP → Level ${e.level_after})`).join("\n")
     : "No XP events yet.";
 
+  const callsBlock = calls.length > 0
+    ? calls.map(t => {
+        const date = t.call_date;
+        const learnings = Array.isArray(t.key_learnings) && t.key_learnings.length > 0
+          ? "\n" + (t.key_learnings as string[]).map(l => `- ${l}`).join("\n")
+          : "";
+        return `[${date}] ${t.summary}${learnings}`;
+      }).join("\n\n")
+    : "No session transcripts yet.";
+
   return `You are an embedded AI advisor in the AI Native Club portal — a private community for technical co-founders on the $0 → $2M ARR path.
 
 You are speaking directly with ${name}${member.company ? `, co-founder of ${member.company}` : ""}.
@@ -74,6 +94,9 @@ ${feedBlock}
 
 ## Recent XP Events
 ${eventsBlock}
+
+## Session Insights (last ${calls.length} calls)
+${callsBlock}
 
 ---
 

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     return new Response("Member not found", { status: 404 });
   }
 
-  const systemPrompt = buildSystemPrompt(context.member, context.goals, context.feed, context.events);
+  const systemPrompt = buildSystemPrompt(context.member, context.goals, context.feed, context.events, context.calls);
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),

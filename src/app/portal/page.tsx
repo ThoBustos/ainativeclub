@@ -3,7 +3,8 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { PortalData, FeaturesEnabled, ArrHistoryEntry } from "@/types";
+import type { PortalData, FeaturesEnabled, ArrHistoryEntry, Call, CallSchedule } from "@/types";
+import { computeNextCallDate } from "@/types";
 import PortalLoading from "./loading";
 import { PortalDashboard } from "./PortalDashboard";
 import { OnboardingWizard } from "./OnboardingWizard";
@@ -22,14 +23,18 @@ async function PortalContent() {
 
   const db = createAdminClient();
 
-  const [memberRes, goalsRes, eventsRes, sessionRes, pastSessionsRes, feedRes, messagesRes] = await Promise.all([
+  const [memberRes, goalsRes, eventsRes, callSkipsRes, feedRes, messagesRes, callsRes] = await Promise.all([
     db.from("members").select("*").eq("id", memberId).single(),
     db.from("goals").select("*").eq("member_id", memberId).order("created_at", { ascending: true }),
     db.from("level_events").select("*").eq("member_id", memberId).order("created_at", { ascending: false }).limit(10),
-    db.from("sessions").select("*").eq("member_id", memberId).is("completed_at", null).order("scheduled_at", { ascending: true }).limit(1).maybeSingle(),
-    db.from("sessions").select("*").eq("member_id", memberId).not("completed_at", "is", null).order("completed_at", { ascending: false }).limit(10),
+    db.from("call_skips").select("skipped_date").eq("member_id", memberId),
     db.from("thomas_feed").select("*").eq("member_id", memberId).order("created_at", { ascending: false }).limit(5),
     db.from("messages").select("*").eq("member_id", memberId).order("created_at", { ascending: true }).limit(50),
+    db.from("calls")
+      .select("id, call_date, summary, key_learnings, raw_text, created_at, member_id, status")
+      .eq("member_id", memberId)
+      .eq("status", "published")
+      .order("call_date", { ascending: false }),
   ]);
 
   if (!memberRes.data) {
@@ -50,12 +55,17 @@ async function PortalContent() {
     ? (member.arr_history as ArrHistoryEntry[])
     : [];
 
+  const callSchedule = member.call_schedule as CallSchedule | null;
+  const scheduleStart = member.call_schedule_start as string | null;
+  const skips = (callSkipsRes.data ?? []).map(s => s.skipped_date);
+  const nextCallDate = callSchedule ? computeNextCallDate(callSchedule, scheduleStart, skips) : null;
+
   const portalData: PortalData = {
     member,
     goals: goalsRes.data ?? [],
     levelEvents: eventsRes.data ?? [],
-    nextSession: sessionRes.data ?? null,
-    pastSessions: pastSessionsRes.data ?? [],
+    nextCallDate,
+    calls: (callsRes.data ?? []) as Call[],
     thomasFeed: feedRes.data ?? [],
     featuresEnabled,
     arrHistory,

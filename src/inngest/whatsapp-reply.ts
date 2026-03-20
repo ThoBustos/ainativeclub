@@ -94,6 +94,7 @@ export const handleWhatsAppMessage = inngest.createFunction(
         context.goals,
         context.feed,
         context.events,
+        context.calls,
       );
 
       const messages = [
