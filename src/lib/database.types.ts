@@ -12,8 +12,103 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      call_skips: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          skipped_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          skipped_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          skipped_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_skips_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calls: {
+        Row: {
+          call_date: string
+          created_at: string
+          id: string
+          key_learnings: Json | null
+          member_id: string
+          raw_text: string | null
+          status: string
+          summary: string | null
+        }
+        Insert: {
+          call_date: string
+          created_at?: string
+          id?: string
+          key_learnings?: Json | null
+          member_id: string
+          raw_text?: string | null
+          status?: string
+          summary?: string | null
+        }
+        Update: {
+          call_date?: string
+          created_at?: string
+          id?: string
+          key_learnings?: Json | null
+          member_id?: string
+          raw_text?: string | null
+          status?: string
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           arr: string
@@ -62,6 +157,51 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_suggestions: {
+        Row: {
+          call_id: string
+          created_at: string
+          id: string
+          member_id: string
+          status: string
+          title: string
+          xp: number
+        }
+        Insert: {
+          call_id: string
+          created_at?: string
+          id?: string
+          member_id: string
+          status?: string
+          title: string
+          xp: number
+        }
+        Update: {
+          call_id?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          status?: string
+          title?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_suggestions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_suggestions_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           completed_at: string | null
@@ -104,7 +244,7 @@ export type Database = {
         Row: {
           action: string
           created_at: string
-          event_type: Database["public"]["Enums"]["level_event_type"]
+          event_type: string
           id: string
           level_after: number
           member_id: string
@@ -113,7 +253,7 @@ export type Database = {
         Insert: {
           action: string
           created_at?: string
-          event_type: Database["public"]["Enums"]["level_event_type"]
+          event_type: string
           id?: string
           level_after: number
           member_id: string
@@ -122,7 +262,7 @@ export type Database = {
         Update: {
           action?: string
           created_at?: string
-          event_type?: Database["public"]["Enums"]["level_event_type"]
+          event_type?: string
           id?: string
           level_after?: number
           member_id?: string
@@ -146,6 +286,8 @@ export type Database = {
           arr_target: number
           avatar_url: string | null
           bio: string | null
+          call_schedule: Json | null
+          call_schedule_start: string | null
           company: string | null
           created_at: string | null
           email: string
@@ -171,6 +313,8 @@ export type Database = {
           arr_target?: number
           avatar_url?: string | null
           bio?: string | null
+          call_schedule?: Json | null
+          call_schedule_start?: string | null
           company?: string | null
           created_at?: string | null
           email: string
@@ -196,6 +340,8 @@ export type Database = {
           arr_target?: number
           avatar_url?: string | null
           bio?: string | null
+          call_schedule?: Json | null
+          call_schedule_start?: string | null
           company?: string | null
           created_at?: string | null
           email?: string
@@ -262,41 +408,6 @@ export type Database = {
           },
         ]
       }
-      sessions: {
-        Row: {
-          completed_at: string | null
-          created_at: string
-          id: string
-          member_id: string
-          notes: string | null
-          scheduled_at: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          member_id: string
-          notes?: string | null
-          scheduled_at: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          member_id?: string
-          notes?: string | null
-          scheduled_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sessions_member_id_fkey"
-            columns: ["member_id"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       thomas_feed: {
         Row: {
           created_at: string
@@ -352,7 +463,6 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      level_event_type: "goal_completed" | "call_attended" | "manual_grant" | "arr_update"
       member_role: "member" | "admin"
       member_status: "pending" | "active" | "suspended"
     }
@@ -387,13 +497,13 @@ export type Tables<
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
         DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
-  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
@@ -413,12 +523,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
-  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
@@ -438,12 +548,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
     : never
-  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
@@ -459,8 +569,8 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
@@ -476,13 +586,15 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
-      level_event_type: ["goal_completed", "call_attended", "manual_grant", "arr_update"],
       member_role: ["member", "admin"],
       member_status: ["pending", "active", "suspended"],
     },
