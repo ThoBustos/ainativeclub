@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -8,10 +8,14 @@ import { Suspense } from "react";
 export const dynamic = "force-dynamic";
 
 function useClientUrls() {
-  const [urls] = useState(() => {
-    if (typeof window === "undefined") {
-      return { isAppSubdomain: false, mainSiteUrl: (path: string) => path };
-    }
+  // Initialize with plain paths — matches server render, avoids hydration mismatch.
+  // Updated after mount once window is available.
+  const [urls, setUrls] = useState({
+    isAppSubdomain: false,
+    mainSiteUrl: (path: string = "/") => path,
+  });
+
+  useEffect(() => {
     const host = window.location.host;
     const protocol = window.location.protocol;
     const isApp = host.startsWith("app.");
@@ -19,8 +23,8 @@ function useClientUrls() {
       if (host.includes("localhost")) return `${protocol}//localhost:4015${path}`;
       return `${protocol}//www.ainativeclub.com${path}`;
     };
-    return { isAppSubdomain: isApp, mainSiteUrl };
-  });
+    setUrls({ isAppSubdomain: isApp, mainSiteUrl });
+  }, []);
 
   return urls;
 }
