@@ -9,6 +9,12 @@ type Events = {
       numMedia: number;
     };
   };
+  "call/transcript.uploaded": {
+    data: {
+      callId: string;
+      memberId: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({
